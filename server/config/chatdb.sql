@@ -214,4 +214,3 @@ $$
 -- select @pages,@total --获取返回参数的值
 
 -- select a.id,a.content,a.type,a.send_id,b.user_id,b.is_read, FROM_UNIXTIME(a.create_date, \'%Y/%m/%d %h:%m:%s\')create_date from message a join user_message b on a.id = b.message_id where a.send_id in (1,2) and b.user_id in (1,2)
--- select * from article a join tag_article b on a.id=b.article_id where b.tag_id=2

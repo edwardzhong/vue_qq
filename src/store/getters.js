@@ -1,0 +1,1 @@
+export const visible = state => state.modal.visible

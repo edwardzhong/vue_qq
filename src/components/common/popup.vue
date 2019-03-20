@@ -1,5 +1,5 @@
 <template lang="pug">
-    div.popup(v-bind:class="{active:show}")
+    div.popup(:class="{active:show}")
         slot content
 </template>
 <script>

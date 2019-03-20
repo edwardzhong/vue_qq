@@ -1,20 +1,18 @@
 <template lang="pug">
 div.content
-    Dialog(v-bind:visible="showDailog" v-on:confirm="comfirmDialog" v-on:close="closeDialog") 
-        template(v-slot:default)
-            p delete data ?
-    Popup(v-bind:show="showPop")
-        template(v-slot:default)
-            div.head 
-                p edit data
-            div.form
-                div.control-group
-                    input(type='text' placeholder='name' v-model="editItem.name")
-                div.control-group
-                    input(type='text' placeholder='amount' maxlength='12' v-model="editItem.num")
-                div.foot
-                    button(class='button' v-on:click="closePop") cancal
-                    button(class='button button-primary' v-on:click="update(editItem)") confirm
+    Dialog(:visible="showDailog" v-on="{confirm:confirmDialog,close:closeDialog}") 
+        p delete data ?
+    Popup(:show="showPop")
+        div.head 
+            p edit data
+        div.form
+            div.control-group
+                input(type='text' placeholder='name' v-model="editItem.name")
+            div.control-group
+                input(type='text' placeholder='amount' maxlength='12' v-model="editItem.num")
+            div.foot
+                button(class='button' @click="closePop") cancal
+                button(class='button button-primary' @click="update(editItem)") confirm
     h1
         router-link(to="/") Go to home
     table(class="table table-striped table-justified")
@@ -28,8 +26,8 @@ div.content
                 td {{i.name}}
                 td {{i.num}}
                 td
-                    button(class="button button-primary" v-on:click="openPop(i)") edit 
-                    button(class="button button-success" v-on:click="openDialog(i.id)") delete
+                    button(class="button button-primary" @click="openPop(i)") edit 
+                    button(class="button button-success" @click="openDialog(i.id)") delete
 </template>
 <script>
 import Dialog from "./common/dialog.vue";
@@ -69,7 +67,7 @@ export default {
             this.showDailog = true;
             this.delID = id;
         },
-        comfirmDialog() {
+        confirmDialog() {
             this.$store.commit("remove", this.delID);
             this.closeDialog();
         },
@@ -80,7 +78,7 @@ export default {
         openPop(item) {
             this.$store.commit("showModal");
             this.showPop = true;
-            this.editItem = Object.assign({},item);//将数据复制一份，而不是引用原数据
+            this.editItem = Object.assign({}, item); //将数据复制一份，而不是引用原数据
         },
         update(item) {
             this.$store.commit("update", item);

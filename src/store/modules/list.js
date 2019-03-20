@@ -20,9 +20,9 @@ export default {
             }
         },
         update(state, item) {
-            let index = state.list.findIndex(i => i.id == item.id);
-            if (index > -1) {
-                state.list[index] = Object.assign(state.list[index], item);
+            let sel = state.list.filter(i => i.id == item.id)[0];
+            if (sel) {
+                Object.assign(sel, item);
             }
         }
     },

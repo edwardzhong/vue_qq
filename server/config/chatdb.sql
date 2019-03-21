@@ -5,7 +5,7 @@ drop table if exists `user`;
 CREATE TABLE `user` (
   `id` char(36) NOT NULL DEFAULT '' COMMENT '主键',
   `name` varchar(50) NOT NULL COMMENT '用户名',
-  `num` int(8) NOT NULL COMMENT '用户号码',
+  `num` int(8) DEFAULT NULL COMMENT '用户号码',
   `salt` varchar(13) DEFAULT NULL COMMENT '加密的盐',
   `hash_password` varchar(64) DEFAULT NULL COMMENT '加密后的密码',
   `email` varchar(50) DEFAULT NULL COMMENT 'email地址',
@@ -106,6 +106,9 @@ for each ROW
 begin
 if (new.id = '' or new.id is null)
 	then set new.id = uuid();
+end if;
+if (new.num = 0 or new.num is null)
+	then set new.num = 1000;
 end if;
 if (new.`create_date` = 0 or new.`create_date` is null)
 	then set new.`create_date` = unix_timestamp(now());

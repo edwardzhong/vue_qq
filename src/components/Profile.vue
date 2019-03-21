@@ -1,0 +1,172 @@
+<template lang="pug">
+div.profile(:style="{left:left+'px',top:top+'px',zIndex:z}" 
+    v-on:click.stop="$emit('setZ')" 
+    v-drag)
+    header
+        h2 用户信息
+        div(v-on:click.stop="$emit('close')") ×
+    div.body
+        div.avatar
+            img(src="../assets/avatar.jpg" ref="avatar")
+            input(type="file" v-on:change="uploadFile($event)")
+        div(class="form form-aligned")
+            div.control-group
+                label number
+                p 1001
+            div.control-group
+                label name/email
+                p 123@123.com
+            div.control-group
+                label nickname
+                input(type="text" value="jeff") 
+            div.control-group
+                label signature
+                textarea what do you want ?
+        button(class="button") save
+
+</template>
+<script>
+import { post } from "../common/request.js";
+
+export default {
+    name: "profile",
+    props: {
+        left: String,
+        top: String,
+        z: String
+    },
+    methods: {
+        uploadFile(e) {
+            const that = this;
+            const file = e.target.files[0];
+            if (!file) return false;
+            if (file.type.indexOf("image") === -1) {
+                alert("请上传图片！");
+                return false;
+            }
+
+            //拖拉图片到浏览器，可以实现预览功能
+            // const url = window.URL.createObjectURL(file);
+            const fileName = file.name;
+            const name = fileName.substr(0, fileName.lastIndexOf("."));
+            const fileSize = Math.floor(file.size / 1024);
+            if (fileSize > 500) {
+                alert("上传大小不能超过500K.");
+                return false;
+            }
+            if (!window.FileReader) {
+                alert("浏览器不支持上传");
+                return false;
+            }
+
+            const fr = new FileReader();
+            fr.onloadend = function(e) {
+                post("/upload", { data: e.target.result, name: fileName })
+                    .then(res => {
+                        console.log(res);
+                        if(res.code==0){
+                            that.$refs.avatar.src = res.data;
+                        } else {
+                            alert(res.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        alert(err.message);
+                    });
+            };
+            fr.readAsDataURL(file);
+        }
+    }
+};
+</script>
+<style lang="scss" scoped>
+$blue: hsl(200, 100%, 45%);
+.profile {
+    position: absolute;
+    width: 400px;
+    box-shadow: 0 6px 20px 0 hsla(0, 0%, 0%, 0.19),
+        0 8px 17px 0 hsla(0, 0%, 0%, 0.2);
+    header {
+        display: flex;
+        flex: row wrap;
+        align-items: center;
+        justify-content: space-between;
+        background-color: $blue;
+        user-select: none;
+        h2 {
+            margin: 0;
+            padding: 0 15px;
+            font-weight: normal;
+            font-size: 16px;
+            line-height: 2.6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #fff;
+        }
+        div {
+            font-size: 24px;
+            text-align: center;
+            padding-right: 15px;
+            color: #fff;
+            cursor: pointer;
+        }
+    }
+    .body {
+        padding: 10px;
+        background-color: #fff;
+        text-align: center;
+        .avatar {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            img {
+                width: 100%;
+                height: 100%;
+            }
+            input {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 60px;
+                height: 60px;
+                opacity: 0;
+            }
+        }
+        button {
+            background-color: $blue;
+            color: #fff;
+        }
+    }
+    .form {
+        input {
+            width: 240px;
+        }
+        p {
+            display: inline-block;
+            width: 240px;
+            margin: 0;
+            text-align: left;
+        }
+        textarea {
+            resize: none;
+            height: 100px;
+            width: 240px;
+        }
+    }
+    .form-aligned .control-group {
+        margin-bottom: 0;
+        padding-bottom: 0.5em;
+        label {
+            width: 100px;
+        }
+    }
+}
+</style>
+

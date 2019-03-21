@@ -96,7 +96,7 @@ export default {
 <style lang="scss" scoped>
 .content {
     width: 600px;
-    margin: 50px auto;
+    margin: 0 auto;
 }
 button:not(:last-child) {
     margin-right: 10px;

@@ -2,7 +2,7 @@ const koa = require('koa')
 const app = new koa()
 const logger = require('koa-logger')
 const log = require('./common/logger')
-// const static = require('koa-static')
+const static = require('koa-static')
 const compress = require('koa-compress')
 const cors = require('koa2-cors');
 const koaBody = require('koa-body')
@@ -10,6 +10,7 @@ const router = require('koa-router')()
 // const favicon = require('koa-favicon')
 // const tpl = require('./middleware/tpl')
 const jwt = require('./middleware/jwt')
+const verify = require('./middleware/verify')
 const addRouters = require('./router')
 const config = require('./config/app')
 const server = require('http').createServer(app.callback())
@@ -42,14 +43,15 @@ app.use(koaBody({
 }));
 
 // set static directiory
-// app.use(static(path.join(baseDir, 'dist'), { index: false }));
+app.use(static(path.join(baseDir, 'public'), { index: false }));
 // app.use(favicon(path.join(baseDir, 'dist/favicon.jpg')));
 
 //cors
 app.use(cors({
-    origin: '*',
+    origin: 'http://localhost:4001',// * 仍然不能访问，要写明具体域名才行
     credentials: true,//是否将request的凭证暴露出来
     allowMethods: ['GET', 'POST', 'DELETE'],
+    exposeHeaders: ['Authorization'],// expose出去，axios才能获取该字段
     allowHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
@@ -58,6 +60,13 @@ app.use(jwt({
     secret: config.secret,
     exp: config.exp,
 }));
+
+// need login verify
+app.use(verify([
+    '/upload',
+    '/userInfo',
+    '/logout'
+]));
 
 // set template engine
 // app.use(tpl({

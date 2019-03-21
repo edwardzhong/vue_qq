@@ -6,7 +6,8 @@
   "scripts": {
     "dist": "webpack --config webpack.prod.js",
     "build": "webpack --config webpack.dev.js",
-    "serve": "webpack-dev-server --open --config webpack.dev.js"
+    "watch": "webpack-dev-server --open --config webpack.dev.js",
+    "server": "export NODE_ENV=development && node --inspect server/app"
   },
   "keywords": [
     "vue",
@@ -16,6 +17,18 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.18.0",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.7.0",
+    "koa-body": "^4.1.0",
+    "koa-compress": "^3.0.0",
+    "koa-favicon": "^2.0.1",
+    "koa-logger": "^3.2.0",
+    "koa-router": "^7.4.0",
+    "koa-static": "^5.0.0",
+    "koa2-cors": "^2.0.6",
+    "log4js": "^4.0.2",
+    "mysql": "^2.16.0",
+    "socket.io": "^2.2.0",
     "vue": "^2.6.6",
     "vue-router": "^3.0.2",
     "vuex": "^3.1.0"
@@ -45,20 +58,6 @@
     "webpack-cli": "^3.2.3",
     "webpack-dev-server": "^3.2.0",
     "webpack-merge": "^4.2.1"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "rules": {},
-    "parserOptions": {
-      "parser": "babel-eslint"
-    }
   },
   "postcss": {
     "plugins": {

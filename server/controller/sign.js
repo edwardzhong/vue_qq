@@ -23,25 +23,25 @@ exports.login = async function (ctx, next) {
 		if (!users.length) {
 			return ctx.body = {
 				code: 2,
-				msg: '用户不存在'
+				message: '用户不存在'
 			};
 		}
 		if (users[0].hash_password !== encryptPass(password, users[0].salt)) {
 			return ctx.body = {
 				code: 3,
-				msg: '密码错误'
+				message: '密码错误'
 			};
 		}
 		await ctx.sign({ uid: users[0].id, uname: users[0].name });
 		ctx.body = {
 			code: 0,
-			msg: '登录成功'
+			message: '登录成功'
 		};
 	} catch (err) {
 		log.error(err);
 		ctx.body = {
 			code: -1,
-			msg: '服务器错误',
+			message: '服务器错误',
 			err: err
 		};
 	}
@@ -57,14 +57,14 @@ exports.register = async function (ctx, next) {
 	const { email, password } = ctx.request.body;
 	const salt = makeSalt();
 	const hash_password = encryptPass(password, salt);
-	const form = { salt, hash_password, email, name: email };
+	const form = { salt, hash_password, email, name: email, num: Math.round(Math.random() * 1000000) };
 
 	try {
 		const countRet = await userDao.count({ email });
 		if (countRet[0].count > 0) {
 			return ctx.body = {
 				code: 1,
-				msg: '该邮箱已经被注册！',
+				message: '该邮箱已经被注册！',
 				data: {}
 			}
 		}
@@ -74,21 +74,21 @@ exports.register = async function (ctx, next) {
 		if (!insertRet.affectedRows) {
 			return ctx.body = {
 				code: 2,
-				msg: '注册失败！',
+				message: '注册失败！',
 				data: {}
 			}
 		}
 		ctx.sign(payload); //注册成功后立即登陆
 		ctx.body = {
 			code: 0,
-			msg: '注册成功！',
+			message: '注册成功！',
 			data: payload
 		}
 	} catch (err) {
 		log.error(err);
 		ctx.body = {
 			code: -1,
-			msg: '服务器错误',
+			message: '服务器错误',
 			err: err
 		};
 	}
@@ -105,6 +105,6 @@ exports.logout = async function (ctx, next) {
 	ctx.sign({ name: 'logout' }, 1);
 	ctx.body = {
 		code: 0,
-		msg: '注销成功'
+		message: '注销成功'
 	}
 };

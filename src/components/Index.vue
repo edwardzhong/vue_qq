@@ -3,21 +3,23 @@ div.content
     div.bar(v-drag)
         header
             div.avatar(v-on:click="profile")
-                img(src="../assets/avatar.jpg")
-            h2 jeff
+                img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src") 
+            h2 {{ selfInfo.nick }}
             i.icon-logout(v-on:click="logout")
         div.body
             div(class="search")
                 div
-                    input(type="search" placeholder="search" ref="ser")
+                    input(type="search" placeholder="search" ref="ser" v-on:keyup.enter="search($event)")
                     span(v-on:click="hideSearch") 取消
                 label(v-on:click="showSearch" v-if="!isSearch")
                     i.icon-search
                     span search
             div.search-panel(v-if="isSearch")
-                ul
-                    li avatar
-                    li bbbb
+                ul.users
+                    li(v-for="item in users" :key="item.id" v-on:click="searchAdd(item)")
+                        div.avatar
+                            img(:src="item.avatar? item.avatar: aPic.src") 
+                        p {{item.name}}
             div.main-panel(v-if="!isSearch")        
                 nav
                     div(v-on:click="showTab(0)" :class="{active:tabIndex==0}") 好友
@@ -26,66 +28,100 @@ div.content
                 ul.friends(v-if="tabIndex == 0")
                     li(v-for="item in friends" :key="item.id" v-on:click="add(item)")
                         div.avatar
-                            img(src="../assets/avatar.jpg") 
+                            img(:src="aPic.src") 
                         p {{item.name}}
                 ul.groups(v-if="tabIndex == 1")
                     li(v-for="item in groups" :key="item.id" v-on:click="add(item)")
                         div.avatar
-                            img(src="../assets/group.jpg") 
+                            img(:src="gPic.src") 
                         p {{item.name}}
                 ul.msgs(v-if="tabIndex == 2")
-                    li avatar
-                    li bbbb
+                    li(v-for="item in msgs" :key="item.id")
     component(:is="item.component"  v-for="(item,i) in wins" :key="item.id" 
-        :text="item.name" 
-        :left="item.left" 
-        :top="item.top"
-        :z="item.z" 
+        :info="item.info"
+        :sty="item.sty"
         v-on:close="close(i)"
         v-on:setZ="setZ(i)")
 </template>
 
 <script>
-import MsgWin from "./MsgWin.vue"
-import Profile from "./Profile.vue"
+import { mapState, mapGetters } from "vuex";
+import MsgWin from "./MsgWin.vue";
+import Profile from "./Profile.vue";
+import { get, post } from "../common/request";
 
 export default {
     name: "index",
     data() {
         return {
             isSearch: false,
-            tabIndex:0,
-            friends: [
-                { id: "1", name: "alex" },
-                { id: "2", name: "bob" },
-                { id: "3", name: "cath" },
-                { id: "4", name: "david" }
-            ],
-            groups:[
-                {id:'10',name:'haskell学习'},
-                {id:'11',name:'vue项目'},
-                {id:'12',name:'react学习'}
-            ],
-            wins: []
+            tabIndex: 0,
+            wins: [],
+            aPic: {
+                src: require("../assets/avatar.jpg")
+            },
+            gPic: {
+                src: require("../assets/group.jpg")
+            }
         };
     },
+    computed: {
+        ...mapState(["selfInfo", "friends", "groups", "users", "msgs"]),
+        ...mapGetters(["isLogin"])
+    },
+    watch: {
+        isLogin: {
+            //监听登录状态
+            handler: function(val, old) {
+                const that = this;
+                if (val === false) {
+                    that.$router.push("/sign/log");
+                } else {
+                    get("/getInfo")
+                        .then(res => {
+                            console.log(res);
+                            if (res.code == 0) {
+                                that.$store.commit(
+                                    "setSelfInfo",
+                                    res.data.user
+                                );
+                                that.$store.commit(
+                                    "setFriends",
+                                    res.data.friends
+                                );
+                                that.$store.commit("setMsgs", res.data.applys);
+                            } else if(res.code==1){
+                                this.$store.commit("logout");
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            alert(err.message);
+                        });
+                }
+            },
+            immediate: true //进入组件立即执行一次
+        }
+    },
     methods: {
-        add(item, win = MsgWin) {
-            if (this.wins.filter(w => w.id == item.id)[0]) return;
+        add(info, win = MsgWin) {
+            if (this.wins.filter(w => w.info.id == info.id)[0]) return;
             let l = this.wins.length;
             this.wins.push({
-                ...item,
-                component: win,
-                left: l * 30 + 270 + "",
-                top: l * 30 + 30 + "",
-                z: "0"
+                info,
+                sty: {
+                    left: l * 30 + 270,
+                    top: l * 30 + 30,
+                    z: 0
+                },
+                component: win
             });
             this.setZ(l);
         },
         setZ(i) {
             this.wins.forEach((item, index) => {
-                if (index == i) item.z = "1";
-                else item.z = "0";
+                if (index == i) item.z = 1;
+                else item.z = 0;
             });
         },
         close(i) {
@@ -97,22 +133,35 @@ export default {
         },
         hideSearch() {
             this.isSearch = false;
+            this.$store.commit("clearUsers");
             this.$refs.ser.value = "";
         },
         profile() {
-            this.add(
-                {
-                    id: "profile",
-                    name: "profile"
-                },
-                Profile
-            );
+            this.add(this.selfInfo, Profile);
         },
-        logout(){
-            this.$router.push('/sign/log');
+        searchAdd(info){
+            this.add(info,Profile);
         },
-        showTab(i){
-            this.tabIndex=i;
+        logout() {
+            this.$store.commit("logout");
+        },
+        showTab(i) {
+            this.tabIndex = i;
+        },
+        search(e) {
+            const that = this;
+            const val = e.target.value.trim();
+            if (!val) return;
+            get("/search", { kw: val })
+                .then(res => {
+                    if (res.code == 0) {
+                        that.$store.commit("setUsers", res.data);
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    alert(err.message);
+                });
         }
     }
 };
@@ -171,9 +220,12 @@ $blue: hsl(200, 100%, 45%);
             }
         }
         h2 {
-            flex: 1;
-            margin: 0;
+            width: 170px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             font-weight: normal;
+            font-size: 16px;
         }
         i {
             padding-right: 15px;
@@ -270,9 +322,13 @@ $blue: hsl(200, 100%, 45%);
                 }
             }
         }
-        .friends,.groups,.msgs {
+        .friends,
+        .groups,
+        .users,
+        .msgs {
+            box-sizing: border-box;
             margin: 0;
-            padding: 0 25px;
+            padding: 0 20px;
             min-height: 300px;
             max-height: 500px;
             overflow-y: auto;
@@ -295,10 +351,10 @@ $blue: hsl(200, 100%, 45%);
                         height: 100%;
                     }
                 }
-                &.online{
+                &.online {
                     color: $blue;
-                    .avatar{
-                        border:1px solid $blue;
+                    .avatar {
+                        border: 1px solid $blue;
                     }
                 }
                 p {

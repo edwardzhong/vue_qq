@@ -32,10 +32,11 @@ exports.login = async function (ctx, next) {
 				message: '密码错误'
 			};
 		}
-		await ctx.sign({ uid: users[0].id, uname: users[0].name });
+		await ctx.sign({ uid: users[0].id, email });
 		ctx.body = {
 			code: 0,
-			message: '登录成功'
+			message: '登录成功',
+			data: users[0]
 		};
 	} catch (err) {
 		log.error(err);
@@ -57,32 +58,32 @@ exports.register = async function (ctx, next) {
 	const { email, password } = ctx.request.body;
 	const salt = makeSalt();
 	const hash_password = encryptPass(password, salt);
-	const form = { salt, hash_password, email, name: email, num: Math.round(Math.random() * 1000000) };
+	const num = Math.round(Math.random() * 1000000);
+	const form = { salt, hash_password, email, name: email,nick:email, num: num };
 
 	try {
 		const countRet = await userDao.count({ email });
 		if (countRet[0].count > 0) {
 			return ctx.body = {
-				code: 1,
+				code: 2,
 				message: '该邮箱已经被注册！',
 				data: {}
 			}
 		}
 		const id = uuid();
-		const payload = { uid: id, uname: form.name };
 		const insertRet = await userDao.insert({ id, ...form });
 		if (!insertRet.affectedRows) {
 			return ctx.body = {
-				code: 2,
+				code: 3,
 				message: '注册失败！',
 				data: {}
 			}
 		}
-		ctx.sign(payload); //注册成功后立即登陆
+		ctx.sign({ uid: id, email }); //注册成功后立即登陆
 		ctx.body = {
 			code: 0,
 			message: '注册成功！',
-			data: payload
+			data: { id, email, num, nick: email, signature: '' }
 		}
 	} catch (err) {
 		log.error(err);

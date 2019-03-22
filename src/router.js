@@ -23,16 +23,16 @@ const routes = [{
     component: Sign,
     children: [ //嵌套路由
         {
-            path: "/sign/log",
+            path: "log",
             name: "login",
             component: Login
         },
         {
-            path: "/sign/reg",
+            path: "reg",
             name: "register",
             component: Register
         },
-        { path: '/sign', redirect: '/sign/log' }
+        { path: '*', redirect: 'log' }
     ]
 }, { path: '*', redirect: '/' }]
 

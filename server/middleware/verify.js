@@ -8,7 +8,7 @@ module.exports = opt => {
             const token = await ctx.verify();
             if (!token.isValid) {
                 return ctx.body = {
-                    code: 2,
+                    code: 1,
                     message: '未登录'
                 };
             }

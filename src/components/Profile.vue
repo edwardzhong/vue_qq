@@ -1,41 +1,87 @@
 <template lang="pug">
-div.profile(:style="{left:left+'px',top:top+'px',zIndex:z}" 
-    v-on:click.stop="$emit('setZ')" 
-    v-drag)
-    header
-        h2 用户信息
-        div(v-on:click.stop="$emit('close')") ×
-    div.body
-        div.avatar
-            img(src="../assets/avatar.jpg" ref="avatar")
-            input(type="file" v-on:change="uploadFile($event)")
-        div(class="form form-aligned")
-            div.control-group
-                label number
-                p 1001
-            div.control-group
-                label name/email
-                p 123@123.com
-            div.control-group
-                label nickname
-                input(type="text" value="jeff") 
-            div.control-group
-                label signature
-                textarea what do you want ?
-        button(class="button") save
-
+    div.profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
+        v-on:click.stop="$emit('setZ')" 
+        v-drag)
+        header
+            h2 用户信息
+            div(v-on:click.stop="$emit('close')") ×
+        div.body
+            div.avatar
+                img(:src="info.avatar? info.avatar: aPic.src" ref="img")
+                input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
+            div(class="form form-aligned")
+                div.control-group
+                    label number
+                    p {{info.num}}
+                div.control-group
+                    label email
+                    p {{info.email}}
+                div.control-group
+                    label nickname
+                    input(type="text" :value ="info.nick" v-if="infoType == 0" ref="nick")
+                    p(v-if="infoType!=0") {{info.nick}}
+                div.control-group
+                    label signature
+                    textarea(v-if="infoType == 0" ref="signature") {{info.signature}}
+                    p(v-if="infoType!=0") {{info.signature}}
+            button(class="button" v-if="infoType == 0" v-on:click="save") save
+            button(class="button" v-if="infoType == 2" v-on:click="reply") 加为好友
 </template>
 <script>
-import { post } from "../common/request.js";
+import { mapState } from "vuex";
+import { post } from "../common/request";
 
 export default {
     name: "profile",
     props: {
-        left: String,
-        top: String,
-        z: String
+        info: Object,
+        sty: Object
+    },
+    created() {
+        if (this.selfInfo.id == this.info.id) {
+            this.infoType = 0;
+        } else if (this.friends.findIndex(i => id.id == this.info.id) > -1) {
+            this.infoType = 1;
+        }
+    },
+    data() {
+        return {
+            aPic: {
+                src: require("../assets/avatar.jpg")
+            },
+            infoType: 2, //0 自己 1 好友 2 陌生人
+            showDailog: false
+        };
+    },
+    computed: {
+        ...mapState(["selfInfo", "friends", "groups"])
     },
     methods: {
+        apply() {},
+        save() {
+            const that = this;
+            let selfInfo = {
+                avatar: that.$refs.img.dataset.src || "",
+                nick: that.$refs.nick.value.trim(),
+                signature: that.$refs.signature.value.trim()
+            };
+            if (!selfInfo.avatar) {
+                delete selfInfo.avatar;
+            }
+            post("/updateInfo", selfInfo)
+                .then(res => {
+                    if (res.code == 0) {
+                        that.$store.commit("updateSelfInfo", selfInfo);
+                        that.$emit("close");
+                    } else {
+                        alert(res.message);
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    alert(err.message);
+                });
+        },
         uploadFile(e) {
             const that = this;
             const file = e.target.files[0];
@@ -64,8 +110,9 @@ export default {
                 post("/upload", { data: e.target.result, name: fileName })
                     .then(res => {
                         console.log(res);
-                        if(res.code==0){
-                            that.$refs.avatar.src = res.data;
+                        if (res.code == 0) {
+                            that.$refs.img.src = res.data;
+                            that.$refs.img.dataset.src = res.data;
                         } else {
                             alert(res.message);
                         }

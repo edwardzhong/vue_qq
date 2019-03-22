@@ -14,7 +14,7 @@
             router-link(to="/sign/log") to login &#8594
 </template>
 <script>
-import { post } from "../common/request.js";
+import { post } from "../common/request";
 
 export default {
     name: "register",
@@ -46,9 +46,14 @@ export default {
             }
             post("/register", { email: this.email, password: this.password })
                 .then(res => {
-                    console.log(res);
                     if (res.code == 0) {
-                        that.$router.replace("/");
+                        const token = localStorage.getItem("token");
+                        if (!token) {
+                            alert("token not exist");
+                        } else {
+                            that.$store.commit("setLoginInfo", { token,...res.data });
+                            that.$router.replace("/");
+                        }
                     } else {
                         alert(res.message);
                     }

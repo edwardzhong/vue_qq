@@ -38,11 +38,17 @@ export default {
                 return;
             }
 
-            post("/login", { email:this.email, password:this.password })
+            post("/login", { email: this.email, password: this.password })
                 .then(res => {
                     console.log(res);
                     if (res.code == 0) {
-                        that.$router.replace("/");
+                        const token = localStorage.getItem("token");
+                        if (!token) {
+                            alert("token not exist");
+                        } else {
+                            that.$store.commit("setLoginInfo", { token,...res.data });
+                            that.$router.replace("/");
+                        }
                     } else {
                         alert(res.message);
                     }

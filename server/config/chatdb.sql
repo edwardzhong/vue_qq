@@ -10,7 +10,7 @@ CREATE TABLE `user` (
   `hash_password` varchar(64) DEFAULT NULL COMMENT '加密后的密码',
   `email` varchar(50) DEFAULT NULL COMMENT 'email地址',
   `nick` varchar(50) DEFAULT NULL COMMENT '昵称',
-  `avatar` varchar(50) DEFAULT NULL COMMENT '头像',
+  `avatar` varchar(200) DEFAULT NULL COMMENT '头像',
   `signature` varchar(100) DEFAULT NULL COMMENT '个性签名',
   `is_onlne` tinyint(1) DEFAULT '0' COMMENT '是否在线',
   `is_visible` tinyint(1) DEFAULT '0' COMMENT '是否隐身',
@@ -19,7 +19,7 @@ CREATE TABLE `user` (
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '注册时间',
   `update_date` int(10) unsigned DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表'; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表'; 
 
 drop table if exists `group`;
 CREATE TABLE `group` (
@@ -29,7 +29,7 @@ CREATE TABLE `group` (
   `name` varchar(20) NOT NULL COMMENT '组名',
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='群组表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='群组表';
 
 drop table if exists `message`;
 CREATE TABLE `message` (
@@ -39,7 +39,7 @@ CREATE TABLE `message` (
   `send_id` char(36) NOT NULL COMMENT '发送用户id',
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='消息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='消息表';
 
 drop table if exists `friend_apply`;
 CREATE TABLE `friend_apply` (
@@ -52,7 +52,7 @@ CREATE TABLE `friend_apply` (
   `update_date` int(10) unsigned DEFAULT NULL COMMENT '更新时间',
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='好友申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='好友申请表';
 
 drop table if exists `user_friend`;
 CREATE TABLE `user_friend` (

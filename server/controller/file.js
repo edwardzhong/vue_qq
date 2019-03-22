@@ -1,5 +1,5 @@
 const log = require('../common/logger')
-const config = require('../config/app')
+const { port } = require('../config/app')
 const fs = require('fs')
 const path = require('path')
 
@@ -21,7 +21,7 @@ exports.uploadFile = async (ctx, next) => {
 		fs.writeFileSync(filePath, dataBuffer);
 		ctx.body = {
 			code: 0,
-			data: `http://localhost:${config.port}/upload/${fileName+ext}`,
+			data: `http://localhost:${port}/upload${fileName + ext}`,
 			message: 'success'
 		};
 	} catch (err) {

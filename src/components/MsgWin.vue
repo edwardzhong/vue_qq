@@ -15,9 +15,9 @@ export default {
     name: "msgWin",
     props: {
         text: String,
-        left: String,
-        top: String,
-        z: String
+        left: Number,
+        top: Number,
+        z: Number
     }
 };
 </script>

@@ -1,7 +1,7 @@
 <template lang="pug">
 div.dialog(v-if="visible")
     div.body
-        slot title
+        slot content
     div.foot
         a(href="javascript:;" v-on:click="$emit('close')") cancel
         a(href="javascript:;" v-on:click="$emit('confirm')") yes

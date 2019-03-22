@@ -65,7 +65,11 @@ app.use(jwt({
 app.use(verify([
     '/upload',
     '/userInfo',
-    '/logout'
+    '/logout',
+    '/getInfo',
+    '/accept',
+    '/reject',
+    '/updateInfo'
 ]));
 
 // set template engine

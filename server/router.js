@@ -1,6 +1,6 @@
 const { login, register, logout } = require('./controller/sign');
 const { uploadFile } = require('./controller/file')
-const { userInfo, getInfo, accept, reject, search, updateInfo } = require('./controller/user');
+const { userInfo, getInfo, apply,accept, reject, search, updateInfo } = require('./controller/user');
 
 module.exports = function (router) {
     router
@@ -10,8 +10,9 @@ module.exports = function (router) {
         .post('/upload', uploadFile)
         .get('/userInfo', userInfo)
         .get('/getInfo', getInfo)
-        .get('/accept', accept)
-        .get('/reject', reject)
+        .post('/apply', apply)
+        .post('/accept', accept)
+        .post('/reject', reject)
         .get('/search', search)
         .post('/updateInfo', updateInfo)
 };

@@ -58,8 +58,6 @@ exports.register = async function (ctx, next) {
 	const { email, password } = ctx.request.body;
 	const salt = makeSalt();
 	const hash_password = encryptPass(password, salt);
-	const num = Math.round(Math.random() * 1000000);
-	const form = { salt, hash_password, email, name: email,nick:email, num: num };
 
 	try {
 		const countRet = await userDao.count({ email });
@@ -71,7 +69,11 @@ exports.register = async function (ctx, next) {
 			}
 		}
 		const id = uuid();
-		const insertRet = await userDao.insert({ id, ...form });
+		let num = 1000;
+		const numRet = await userDao.sql('select ifnull(MAX(num),1000)+1 as num from user');
+		if(numRet){ num = numRet[0].num; }
+		const form = { id, num, salt, hash_password, email, name: email, nick:email };
+		const insertRet = await userDao.insert(form);
 		if (!insertRet.affectedRows) {
 			return ctx.body = {
 				code: 3,
@@ -83,7 +85,7 @@ exports.register = async function (ctx, next) {
 		ctx.body = {
 			code: 0,
 			message: '注册成功！',
-			data: { id, email, num, nick: email, signature: '' }
+			data: { id, email, nick: email, signature: '' }
 		}
 	} catch (err) {
 		log.error(err);

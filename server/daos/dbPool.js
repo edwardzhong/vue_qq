@@ -32,7 +32,7 @@ exports.getConnection = function () {
 /**
  * get the connection pool of database
  * 获取数据库连接池
- * @returns {*}
+ * @returns {Pool}
  */
 exports.getPool = function () {
     if (!pool) {

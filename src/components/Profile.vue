@@ -3,7 +3,7 @@
         v-on:click.stop="$emit('setZ')" 
         v-drag)
         header
-            h2 用户信息
+            h2 {{infoType == 0 ? '用户信息':info.nick}}
             div(v-on:click.stop="$emit('close')") ×
         div.body
             div.avatar
@@ -24,12 +24,16 @@
                     label signature
                     textarea(v-if="infoType == 0" ref="signature") {{info.signature}}
                     p(v-if="infoType!=0") {{info.signature}}
+                div.control-group(v-if="infoType == 2")
+                    label 验证信息
+                    input(type="text" ref="verify")
             button(class="button" v-if="infoType == 0" v-on:click="save") save
-            button(class="button" v-if="infoType == 2" v-on:click="reply") 加为好友
+            button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 加为好友
 </template>
 <script>
-import { mapState } from "vuex";
+import { mapState,mapGetters } from "vuex";
 import { post } from "../common/request";
+import { compressPicture } from "../common/util";
 
 export default {
     name: "profile",
@@ -40,7 +44,7 @@ export default {
     created() {
         if (this.selfInfo.id == this.info.id) {
             this.infoType = 0;
-        } else if (this.friends.findIndex(i => id.id == this.info.id) > -1) {
+        } else if (this.friends.findIndex(i => i.id == this.info.id) > -1) {
             this.infoType = 1;
         }
     },
@@ -54,33 +58,33 @@ export default {
         };
     },
     computed: {
-        ...mapState(["selfInfo", "friends", "groups"])
+        ...mapState(["selfInfo"]),
+        ...mapGetters(["friends"])
     },
     methods: {
-        apply() {},
-        save() {
+        apply(info) {
             const that = this;
-            let selfInfo = {
-                avatar: that.$refs.img.dataset.src || "",
-                nick: that.$refs.nick.value.trim(),
-                signature: that.$refs.signature.value.trim()
-            };
-            if (!selfInfo.avatar) {
-                delete selfInfo.avatar;
-            }
-            post("/updateInfo", selfInfo)
-                .then(res => {
-                    if (res.code == 0) {
-                        that.$store.commit("updateSelfInfo", selfInfo);
-                        that.$emit("close");
-                    } else {
-                        alert(res.message);
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
+            const val = this.$refs.verify.value.trim();
+            let form = { to_id: info.id };
+            if (val) form.apply_message = val;
+            post("/apply", form).then(res => {
+                if (res.code == 0) {
+                    that.$emit("close");
+                } else {
                     alert(err.message);
-                });
+                }
+            }).catch(err => {
+                alert(err.message);
+            });
+        },
+        save() {
+            let form = {
+                nick: this.$refs.nick.value.trim(),
+                signature: this.$refs.signature.value.trim()
+            },
+            imgsrc = this.$refs.img.dataset.src || "";
+            if (imgsrc) { form.avatar=imgsrc; }
+            this.$store.dispatch('updateSelf',form,this.$emit("close"));
         },
         uploadFile(e) {
             const that = this;
@@ -96,8 +100,8 @@ export default {
             const fileName = file.name;
             const name = fileName.substr(0, fileName.lastIndexOf("."));
             const fileSize = Math.floor(file.size / 1024);
-            if (fileSize > 500) {
-                alert("上传大小不能超过500K.");
+            if (fileSize > 2048) {
+                alert("上传大小不能超过2M.");
                 return false;
             }
             if (!window.FileReader) {
@@ -107,20 +111,21 @@ export default {
 
             const fr = new FileReader();
             fr.onloadend = function(e) {
-                post("/upload", { data: e.target.result, name: fileName })
-                    .then(res => {
-                        console.log(res);
+                let img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const base64 = compressPicture(img,128);
+                    post("/upload", { data: base64, name: fileName }).then(res => {
                         if (res.code == 0) {
                             that.$refs.img.src = res.data;
                             that.$refs.img.dataset.src = res.data;
                         } else {
                             alert(res.message);
                         }
-                    })
-                    .catch(err => {
-                        console.log(err);
+                    }).catch(err => {
                         alert(err.message);
                     });
+                };
             };
             fr.readAsDataURL(file);
         }
@@ -193,18 +198,18 @@ $blue: hsl(200, 100%, 45%);
     }
     .form {
         input {
-            width: 240px;
+            width: 200px;
         }
         p {
             display: inline-block;
-            width: 240px;
+            width: 200px;
             margin: 0;
             text-align: left;
         }
         textarea {
             resize: none;
             height: 100px;
-            width: 240px;
+            width: 200px;
         }
     }
     .form-aligned .control-group {

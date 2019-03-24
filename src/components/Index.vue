@@ -2,7 +2,7 @@
 div.content
     div.bar(v-drag)
         header
-            div.avatar(v-on:click="profile")
+            div.avatar(v-on:click="profile(selfInfo)")
                 img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src") 
             h2 {{ selfInfo.nick }}
             i.icon-logout(v-on:click="logout")
@@ -15,40 +15,55 @@ div.content
                     i.icon-search
                     span search
             div.search-panel(v-if="isSearch")
-                ul.users
-                    li(v-for="item in users" :key="item.id" v-on:click="searchAdd(item)")
-                        div.avatar
+                ul.searchs
+                    li(v-for="item in searchs" :key="item.id")
+                        div.avatar(v-on:click="profile(item)")
                             img(:src="item.avatar? item.avatar: aPic.src") 
-                        p {{item.name}}
+                        p(v-on:click="searchTo(item)") {{item.name}}
             div.main-panel(v-if="!isSearch")        
                 nav
                     div(v-on:click="showTab(0)" :class="{active:tabIndex==0}") 好友
                     div(v-on:click="showTab(1)" :class="{active:tabIndex==1}") 分组
-                    div(v-on:click="showTab(2)" :class="{active:tabIndex==2}") 消息    
+                    div(v-on:click="showTab(2)" :class="{active:tabIndex==2}") 消息
+                        span(v-if="dealCount") {{dealCount}}    
                 ul.friends(v-if="tabIndex == 0")
-                    li(v-for="item in friends" :key="item.id" v-on:click="add(item)")
-                        div.avatar
-                            img(:src="aPic.src") 
-                        p {{item.name}}
+                    li(v-for="item in friends" :key="item.id" v-on:contextmenu.prevent="menu")
+                        div.avatar(v-on:click="profile(item)")
+                            img(:src="item.avatar? item.avatar: aPic.src") 
+                        p(v-on:click="chatWin(item)") {{item.nick}}
                 ul.groups(v-if="tabIndex == 1")
-                    li(v-for="item in groups" :key="item.id" v-on:click="add(item)")
-                        div.avatar
+                    li(v-for="item in groups" :key="item.id")
+                        div.avatar(v-on:click="profile(item)")
                             img(:src="gPic.src") 
-                        p {{item.name}}
+                        p(v-on:click="chatWin(item)") {{item.name}}
                 ul.msgs(v-if="tabIndex == 2")
                     li(v-for="item in msgs" :key="item.id")
+                        time {{item.date}} 
+                        p 
+                            a(href="javascript:;" v-on:click="msgTo(item)") {{item.nick}} 
+                            span 申请成为好友
+                        p.msg "{{item.apply_message}}"
+                        div.btns
+                            template(v-if="item.status == 0")
+                                a(href="javascript:;" v-on:click="accept(item)") 同意
+                                a(href="javascript:;" v-on:click="reject(item)") 拒绝
+                            template(v-if="item.status == 1")
+                                span 已同意
+                            template(v-if="item.status == 2")
+                                span 已拒绝
+
     component(:is="item.component"  v-for="(item,i) in wins" :key="item.id" 
         :info="item.info"
         :sty="item.sty"
-        v-on:close="close(i)"
+        v-on:close="closeWin(i)"
         v-on:setZ="setZ(i)")
 </template>
 
 <script>
 import { mapState, mapGetters } from "vuex";
+import io from 'socket.io-client';
 import MsgWin from "./MsgWin.vue";
 import Profile from "./Profile.vue";
-import { get, post } from "../common/request";
 
 export default {
     name: "index",
@@ -65,9 +80,25 @@ export default {
             }
         };
     },
+    created(){
+        // const socket = io('http://localhost:3001');
+        // socket.on('open', function () {
+        //     showTip('socket io is open !');
+        //     init();
+        // });
+        // //监听用户离开
+        // socket.on('userout',removeUser);
+
+        // //监听message事件，打印消息信息
+        // socket.on('message', function (data) {
+        //     console.log(data);
+        //     appendMsg(data);
+        // });
+        // socket.send({ type: 'sign', data: user });
+    },
     computed: {
-        ...mapState(["selfInfo", "friends", "groups", "users", "msgs"]),
-        ...mapGetters(["isLogin"])
+        ...mapState(["selfInfo"]),
+        ...mapGetters(["isLogin","dealCount","searchs","friends","groups","msgs"])
     },
     watch: {
         isLogin: {
@@ -77,35 +108,24 @@ export default {
                 if (val === false) {
                     that.$router.push("/sign/log");
                 } else {
-                    get("/getInfo")
-                        .then(res => {
-                            console.log(res);
-                            if (res.code == 0) {
-                                that.$store.commit(
-                                    "setSelfInfo",
-                                    res.data.user
-                                );
-                                that.$store.commit(
-                                    "setFriends",
-                                    res.data.friends
-                                );
-                                that.$store.commit("setMsgs", res.data.applys);
-                            } else if(res.code==1){
-                                this.$store.commit("logout");
-                            }
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            alert(err.message);
-                        });
+                    that.$store.dispatch('getInfo');
                 }
             },
             immediate: true //进入组件立即执行一次
         }
     },
     methods: {
-        add(info, win = MsgWin) {
-            if (this.wins.filter(w => w.info.id == info.id)[0]) return;
+        menu(){
+            console.log(11);
+        },
+        accept(item) {
+            this.$store.dispatch('accept',item);
+        },
+        reject(item) {
+            this.$store.dispatch('reject',item);
+        },
+        addWin(info, com) {
+            if ( this.wins.filter( w => w.component == com && w.info.id == info.id )[0] ) return;
             let l = this.wins.length;
             this.wins.push({
                 info,
@@ -114,9 +134,25 @@ export default {
                     top: l * 30 + 30,
                     z: 0
                 },
-                component: win
+                component: com
             });
             this.setZ(l);
+        },
+        chatWin(info) {
+            this.addWin(info, MsgWin);
+        },
+        profile(info) {
+            this.addWin(info, Profile);
+        },
+        searchTo(info) {
+            if (this.friends.findIndex(i => i.id == info.id) > -1) {
+                this.chatWin(info);
+            } else {
+                this.profile(info);
+            }
+        },
+        msgTo(info) {
+            this.profile(Object.assign({},info,{id:info.from_id}));
         },
         setZ(i) {
             this.wins.forEach((item, index) => {
@@ -124,7 +160,7 @@ export default {
                 else item.z = 0;
             });
         },
-        close(i) {
+        closeWin(i) {
             this.wins.splice(i, 1);
         },
         showSearch() {
@@ -133,14 +169,8 @@ export default {
         },
         hideSearch() {
             this.isSearch = false;
-            this.$store.commit("clearUsers");
+            this.$store.commit("clearSearchs");
             this.$refs.ser.value = "";
-        },
-        profile() {
-            this.add(this.selfInfo, Profile);
-        },
-        searchAdd(info){
-            this.add(info,Profile);
         },
         logout() {
             this.$store.commit("logout");
@@ -149,19 +179,9 @@ export default {
             this.tabIndex = i;
         },
         search(e) {
-            const that = this;
             const val = e.target.value.trim();
             if (!val) return;
-            get("/search", { kw: val })
-                .then(res => {
-                    if (res.code == 0) {
-                        that.$store.commit("setUsers", res.data);
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                    alert(err.message);
-                });
+            this.$store.dispatch('search',val);
         }
     }
 };
@@ -178,12 +198,10 @@ $blue: hsl(200, 100%, 45%);
 .main-panel {
     width: 100%;
 }
-.search-panel,
-.user-panel {
+.search-panel {
     width: 100%;
     min-height: 313px;
     max-height: 513px;
-    padding: 10px 20px;
     li {
         line-height: 2;
     }
@@ -320,15 +338,19 @@ $blue: hsl(200, 100%, 45%);
                     color: hsl(200, 100%, 50%);
                     background-color: #ececec;
                 }
+                span {
+                    padding: 4px;
+                    color: $blue;
+                    font-size: 10px;
+                }
             }
         }
         .friends,
         .groups,
-        .users,
-        .msgs {
+        .searchs {
             box-sizing: border-box;
             margin: 0;
-            padding: 0 20px;
+            padding-left: 16px;
             min-height: 300px;
             max-height: 500px;
             overflow-y: auto;
@@ -338,14 +360,15 @@ $blue: hsl(200, 100%, 45%);
                 justify-content: flex-start;
                 margin-top: 20px;
                 cursor: pointer;
-                &:hover {
-                    color: hsl(200, 100%, 40%);
-                }
                 .avatar {
                     width: 30px;
                     height: 30px;
+                    border: 1px solid #fff;
                     border-radius: 50%;
                     overflow: hidden;
+                    &:hover {
+                        border-color: hsl(200, 100%, 40%);
+                    }
                     img {
                         width: 100%;
                         height: 100%;
@@ -364,6 +387,37 @@ $blue: hsl(200, 100%, 45%);
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
+                    &:hover {
+                        color: hsl(200, 100%, 40%);
+                    }
+                }
+            }
+        }
+        .msgs {
+            box-sizing: border-box;
+            min-height: 300px;
+            max-height: 500px;
+            padding: 0 10px;
+            overflow-y: auto;
+            li {
+                padding: 5px 10px;
+                border-bottom: 1px dashed #ddd;
+                time {
+                    color: #999;
+                    font-size: 12px;
+                }
+                p {
+                    margin: 0;
+                    // padding-left: 10px;
+                    line-height: 1.6;
+                }
+                .btns {
+                    text-align: right;
+                    font-size: 13px;
+                    color: #aaa;
+                    a {
+                        padding-left: 14px;
+                    }
                 }
             }
         }

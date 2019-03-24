@@ -40,7 +40,6 @@ export default {
 
             post("/login", { email: this.email, password: this.password })
                 .then(res => {
-                    console.log(res);
                     if (res.code == 0) {
                         const token = localStorage.getItem("token");
                         if (!token) {
@@ -54,7 +53,6 @@ export default {
                     }
                 })
                 .catch(err => {
-                    console.log(err);
                     alert(err.message);
                 });
         }

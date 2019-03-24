@@ -1,25 +1,30 @@
+import { get, post } from "../common/request";
 
-export const send = async () => {
-    class Foo {
-        constructor(x){
-            this.x = x;
+export const getInfo = ({ commit }) => {
+    get("/getInfo").then(res => {
+        if (res.code == 0) {
+            commit("setSelfInfo", res.data.user);
+            commit("setFriends", res.data.friends);
+            commit("setMsgs", res.data.msgs);
+        } else if (res.code == 1) {
+            commit("logout");
         }
-        say(){
-            console.log(this.x);
-        }
-    }
-    const foo = new Foo(123); // class test
-    try {
-        return await new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve('async test');
-            }, 1000);
-        });
-    } catch (err) {
-        console.log(err);
-    }
+    }).catch(err => {
+        alert(err.message);
+    });
 }
 
-export const get = ()=>{
-    return 'get';
+export const updateSelf=({commit},form,cb)=>{
+    post("/updateInfo", form).then(res => {
+        if (res.code == 0) {
+            commit("updateSelfInfo", form);
+            cb;
+        } else if (res.code == 1) {
+            commit("logout");
+        } else {
+            alert(res.message);
+        }
+    }).catch(err => {
+        alert(err.message);
+    });
 }

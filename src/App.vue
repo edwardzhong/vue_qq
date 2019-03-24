@@ -3,13 +3,13 @@
 		Modal
 		router-view
 </template>
-
 <script>
 import Modal from "./components/common/Modal.vue"
+import Dialog from "./components/common/Dialog.vue"
 
 export default {
     name: "app",
-    components: { Modal }
+    components: { Modal, Dialog}
 };
 </script>
 

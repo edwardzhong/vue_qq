@@ -7,7 +7,7 @@ const compress = require('koa-compress')
 const cors = require('koa2-cors');
 const koaBody = require('koa-body')
 const router = require('koa-router')()
-// const favicon = require('koa-favicon')
+const favicon = require('koa-favicon')
 // const tpl = require('./middleware/tpl')
 const jwt = require('./middleware/jwt')
 const verify = require('./middleware/verify')
@@ -44,7 +44,7 @@ app.use(koaBody({
 
 // set static directiory
 app.use(static(path.join(baseDir, 'public'), { index: false }));
-// app.use(favicon(path.join(baseDir, 'dist/favicon.jpg')));
+app.use(favicon(path.join(baseDir, 'public/favicon.ico')));
 
 //cors
 app.use(cors({
@@ -61,12 +61,13 @@ app.use(jwt({
     exp: config.exp,
 }));
 
-// need login verify
+// need login verify url
 app.use(verify([
     '/upload',
     '/userInfo',
     '/logout',
     '/getInfo',
+    '/apply',
     '/accept',
     '/reject',
     '/updateInfo'
@@ -86,7 +87,7 @@ app.use(router.routes())
 app.use(async (ctx, next) => {
     log.error(`404 ${ctx.message} : ${ctx.href}`);
     ctx.status = 404;
-    ctx.body = { code: 404, msg: '404! not found !' };
+    ctx.body = { code: 404, message: '404! not found !' };
 });
 
 // koa already had middleware to deal with the error, just rigister the error event
@@ -97,7 +98,7 @@ app.on('error', (err, ctx) => {
     if (ctx.app.env === 'development') { //throw the error to frontEnd when in the develop mode
         ctx.res.end(err.stack); //finish the response
     } else {
-        ctx.body = { code: -1, msg: 'Server Error' };
+        ctx.body = { code: -1, message: 'Server Error' };
     }
 });
 

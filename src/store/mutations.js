@@ -3,11 +3,7 @@ const token = localStorage.getItem("token");
 export const state = {
     modal: { visible: false },
     loginInfo: { token },
-    selfInfo: {},
-    friends: [],
-    groups: [],
-    users: [],
-    msgs: []
+    selfInfo: {}
 }
 
 export const mutations = {
@@ -26,18 +22,6 @@ export const mutations = {
     },
     updateSelfInfo: (state, payload) => {
         state.selfInfo = Object.assign(state.selfInfo, payload);
-    },
-    setFriends: (state, payload) => {
-        state.friends = payload;
-    },
-    setUsers: (state, payload) => {
-        state.users = payload;
-    },
-    clearUsers: (state, payload) => {
-        state.users = [];
-    },
-    setMsgs: (state, payload) => {
-        state.msgs = payload;
     },
     logout: () => {
         state.loginInfo = {};

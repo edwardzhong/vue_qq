@@ -8,5 +8,6 @@ module.exports={
 	user: "root",
 	password: "jianfeng",
 	database: "chatdb",
+	charset : 'utf8mb4',//utf8mb4 才能保存emoji
 	connectionLimit: 100
 };

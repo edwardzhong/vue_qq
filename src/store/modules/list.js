@@ -2,6 +2,9 @@ export default {
     state: {
         list: []
     },
+    getters: {
+        list: state => state.list
+    },
     actions: {
 
     },
@@ -25,8 +28,5 @@ export default {
                 Object.assign(sel, item);
             }
         }
-    },
-    getters: {
-        list: state => state.list
     }
 };

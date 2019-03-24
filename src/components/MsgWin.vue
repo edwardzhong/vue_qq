@@ -1,10 +1,12 @@
 <template lang="pug">
-div.msg-win(:style="{left:left+'px',top:top+'px',zIndex:z}" 
+div.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
     v-on:click.stop="$emit('setZ')" 
     v-drag)
     header
-        h2 {{text}} 会话
-        div(v-on:click.stop="$emit('close')") ×
+        div.avatar
+            img(:src="info.avatar? info.avatar: aPic.src") 
+        h2 {{info.nick}} 会话
+        div.close(v-on:click.stop="$emit('close')") ×
     div.body
     textarea
     footer
@@ -14,10 +16,15 @@ div.msg-win(:style="{left:left+'px',top:top+'px',zIndex:z}"
 export default {
     name: "msgWin",
     props: {
-        text: String,
-        left: Number,
-        top: Number,
-        z: Number
+        info: Object,
+        sty: Object
+    },
+    data() {
+        return {
+            aPic: {
+                src: require("../assets/avatar.jpg")
+            }
+        };
     }
 };
 </script>
@@ -35,9 +42,24 @@ $blue:hsl(200, 100%, 45%);
         justify-content: space-between;
         background-color: $blue;
         user-select: none;
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border: 1px solid $blue;
+            border-radius: 50%;
+            margin-left: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            img {
+                width: 100%;
+                height: 100%;
+            }
+        }
         h2 {
+            box-sizing: border-box;
             margin: 0;
             padding: 0 15px;
+            width: 320px;
             font-weight: normal;
             font-size: 16px;
             line-height: 2.6;
@@ -46,11 +68,12 @@ $blue:hsl(200, 100%, 45%);
             text-overflow: ellipsis;
             color: #fff;
         }
-        div {
+        .close {
             font-size: 24px;
             text-align: center;
             padding-right: 15px;
             color: #fff;
+            opacity: 1;
             cursor: pointer;
         }
     }

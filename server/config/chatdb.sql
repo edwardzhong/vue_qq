@@ -5,7 +5,7 @@ drop table if exists `user`;
 CREATE TABLE `user` (
   `id` char(36) NOT NULL DEFAULT '' COMMENT '主键',
   `name` varchar(50) NOT NULL COMMENT '用户名',
-  `num` int(8) DEFAULT NULL COMMENT '用户号码',
+  `num` int(8) DEFAULT NULL  COMMENT '用户号码',
   `salt` varchar(13) DEFAULT NULL COMMENT '加密的盐',
   `hash_password` varchar(64) DEFAULT NULL COMMENT '加密后的密码',
   `email` varchar(50) DEFAULT NULL COMMENT 'email地址',
@@ -19,7 +19,7 @@ CREATE TABLE `user` (
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '注册时间',
   `update_date` int(10) unsigned DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表'; 
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户表'; 
 
 drop table if exists `group`;
 CREATE TABLE `group` (
@@ -29,17 +29,17 @@ CREATE TABLE `group` (
   `name` varchar(20) NOT NULL COMMENT '组名',
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='群组表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='群组表';
 
 drop table if exists `message`;
 CREATE TABLE `message` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `content` varchar(100) NOT NULL COMMENT '内容',
+  `content` text NOT NULL COMMENT '内容',
   `type` tinyint(1) DEFAULT 0 COMMENT '类型:(0 用户 1 组群)',
   `send_id` char(36) NOT NULL COMMENT '发送用户id',
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='消息表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='消息表';
 
 drop table if exists `friend_apply`;
 CREATE TABLE `friend_apply` (
@@ -47,19 +47,18 @@ CREATE TABLE `friend_apply` (
   `from_id` char(36) NOT NULL COMMENT '申请方id',
   `to_id` char(36) NOT NULL COMMENT '接受方id',
   `status` tinyint(1) DEFAULT 0 COMMENT '状态(0 待处理  1 已同意 2 已拒绝)',
-  `apply_message` char(20) NOT NULL COMMENT '附加消息',
-  `reply` char(20) NOT NULL COMMENT '回复消息',
+  `apply_message` varchar(200) DEFAULT NULL COMMENT '附加消息',
+  `reply` varchar(200) DEFAULT NULL COMMENT '回复消息',
   `update_date` int(10) unsigned DEFAULT NULL COMMENT '更新时间',
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='好友申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='好友申请表';
 
 drop table if exists `user_friend`;
 CREATE TABLE `user_friend` (
-  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
   `user_id` char(36) NOT NULL COMMENT '用户id',
   `friend_id` char(36) NOT NULL COMMENT '好友id',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`user_id`,`friend_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户好友连接表';
 
 drop table if exists `user_group`;
@@ -85,6 +84,13 @@ CREATE TABLE `group_message` (
   PRIMARY KEY (`group_id`,`message_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='组群消息连接表';
 
+drop table if exists `session`;
+CREATE TABLE `session` (
+  `user_id` char(36) NOT NULL COMMENT '用户id',
+  `socket_id` char(24) NOT NULL COMMENT 'socket.id',
+  PRIMARY KEY (`user_id`,`socket_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户socket会话连接表';
+
 /* 触发器 和 存储过程 */
 drop trigger if exists `user_insert`; 
 drop trigger if exists `user_update`; 
@@ -92,6 +98,7 @@ drop trigger if exists `group_insert`;
 drop trigger if exists `message_insert`; 
 drop trigger if exists `friend_apply_insert`; 
 drop trigger if exists `friend_apply_update`; 
+drop procedure if exists `getnum`;
 drop procedure if exists `getpage`;
 
 -- Do nothing, if appear 'ERROR 1064 (42000): ...', it's ok !
@@ -180,6 +187,17 @@ if ((new.`status` <> old.`status`) or (new.`status` is not null and old.`status`
 	then set new.`update_date` = unix_timestamp(now());
 end if;
 END
+$$
+
+-- 获取最大number
+delimiter $$
+create procedure `getnum` 
+(
+  out num int
+)
+begin
+  select MAX(ifnull(num,1000))+1 into num from user;
+end
 $$
 
 -- 获取分页数据存储过程

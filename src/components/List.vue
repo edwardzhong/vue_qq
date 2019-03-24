@@ -107,6 +107,8 @@ button:not(:last-child) {
         line-height: 3;
         color: #fff;
         font-size: 18px;
+        margin: 0;
+        padding-left: 20px;
     }
 }
 .form {

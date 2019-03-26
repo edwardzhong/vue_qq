@@ -62,7 +62,7 @@ app.use(jwt({
     exp: config.exp,
 }));
 
-// need login verify url
+// exclude login verify url
 app.use(verify({
     exclude:[
         '/login',

@@ -58,7 +58,7 @@ module.exports = io => {
         });
 
         socket.on('send', async (uid, msg) => {
-            const sid = maps[uid];
+            const sid = maps[uid];//接收用户socket.id
             const cid = findUid(socket.id);//发送用户id
 
             if (sid) { // 好友在线则发送
@@ -73,6 +73,10 @@ module.exports = io => {
             } catch (err) {
                 log.error(err);
             }
+        });
+        
+        socket.on('status',() => {
+            socket.emit('checkStatus',maps);
         });
 
         socket.on('sendApply', (uid, data) => {

@@ -1,6 +1,7 @@
-const { login, register, logout } = require('./controller/sign');
 const { uploadFile } = require('./controller/file')
-const { getInfo, apply, accept, reject, search, updateInfo, delFriend,getMsg } = require('./controller/user');
+const { login, register, logout } = require('./controller/sign')
+const { apply, accept, reject } = require('./controller/apply')
+const { getInfo, updateInfo, delFriend, getMsg, search } = require('./controller/user')
 
 module.exports = function (router) {
     router

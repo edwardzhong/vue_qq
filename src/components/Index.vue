@@ -94,7 +94,7 @@ export default {
             gPic: {
                 src: require("../assets/group.jpg")
             },
-            socket: {}
+            socket: { close:() => {}}
         };
     },
     async created() {
@@ -113,10 +113,15 @@ export default {
         this.socket.emit("sign", this.selfInfo, res => {
             // console.log(res);
             this.$store.commit("friendStatus", res.data);
-            this.socket.on("userin", map => {
+            this.socket.on("userin", (map,user) => {
                 this.$store.commit("friendStatus", map);
+                showTip(user,'上线了');
             });
-            this.socket.on("userout", map => {
+            this.socket.on("userout", (map,user) => {
+                this.$store.commit("friendStatus", map);
+                showTip(user,'下线了');
+            });
+            this.socket.on('checkStatus',map => {
                 this.$store.commit("friendStatus", map);
             });
             this.socket.on('auth',data => {
@@ -135,6 +140,15 @@ export default {
             });
         });
 
+        const showTip = (user,txt) =>{
+            const friend = this.friends.find(i=>i.id == user.id);
+            if(friend){
+                this.$store.commit('showTip',{name:friend.nick,txt});
+                setTimeout(()=>{
+                    this.$store.commit('closeTip');
+                },2500);
+            }
+        }
         // 打开chat
         // this.chatSocket = io('http://localhost:3001/chat?token='+token,{ forceNew: true });
         // this.chatSocket.on('open', res => {
@@ -186,11 +200,13 @@ export default {
         closeMenu() {
             this.menus.visible = false;
         },
-        removeFriend(info) {
-            this.$store.dispatch("removeFriend", info, this.closeMenu);
+        async removeFriend(info) {
+            await this.$store.dispatch("removeFriend", info);
+            this.closeMenu();
         },
-        accept(item) {
-            this.$store.dispatch("accept", item);
+        async accept(item) {
+            await this.$store.dispatch("accept", item);
+            this.socket.emit('status');
         },
         reject(item) {
             this.$store.dispatch("reject", item);

@@ -48,6 +48,12 @@ export default {
         ...mapState(["selfInfo"])
     },
     mounted(){
+        const that = this;
+        document.onkeydown = function(e) {
+            if (e.ctrlKey && e.keyCode == 13) {
+                that.send();
+            }
+        };
         this.$refs.body.scrollTop = this.$refs.body.scrollHeight;
     },
     methods: {

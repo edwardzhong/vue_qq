@@ -11,7 +11,7 @@ export default {
     },
     actions: {
         accept: ({ commit }, form) => {
-            post("/accept", { friend_id: form.from_id }).then(res => {
+            return post("/accept", { friend_id: form.from_id }).then(res => {
                 if (res.code == 0) {
                     form.id = form.from_id;
                     form.status = 1;

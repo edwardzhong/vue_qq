@@ -4,7 +4,8 @@ const selfInfo = JSON.parse(localStorage.getItem('selfInfo') || '{}');
 export const state = {
     modal: { visible: false },
     loginInfo: { token },
-    selfInfo: selfInfo
+    selfInfo: selfInfo,
+    tip:{name:'nick',txt:'content',show:false}
 }
 
 export const mutations = {
@@ -13,6 +14,12 @@ export const mutations = {
     },
     closeModal: () => {
         state.modal.visible = false;
+    },
+    showTip:(state,payload)=>{
+        state.tip = { ...payload, show:true };
+    },
+    closeTip:(state)=>{
+        state.tip.show = false;
     },
     setLoginInfo: (state) => {
         state.loginInfo = { token: localStorage.getItem("token") };

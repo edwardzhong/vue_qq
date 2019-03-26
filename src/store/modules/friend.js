@@ -9,7 +9,7 @@ export default {
     },
     actions: {
         removeFriend: ({ commit }, form) => {
-            post('/delfriend', { friend_id: form.id }).then(res => {
+            return post('/delfriend', { friend_id: form.id }).then(res => {
                 if (res.code == 0) {
                     commit('removeFriend', form);
                 } else if (res.code == 1) {

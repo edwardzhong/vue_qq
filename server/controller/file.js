@@ -1,4 +1,3 @@
-const log = require('../common/logger')
 const { port } = require('../config/app')
 const fs = require('fs')
 const path = require('path')
@@ -15,21 +14,12 @@ exports.uploadFile = async (ctx, next) => {
 	const { dir, name, ext } = path.parse(form.name);
 	const fileName = dir + '/' + name + new Date().getTime();
 	const filePath = path.normalize(__dirname + '/../..') + "/public/upload/" + fileName + ext;
-	try {
-		const base64Data = form.data.replace(/^data:image\/\w+;base64,/, "");
-		const dataBuffer = Buffer.from(base64Data, 'base64');
-		fs.writeFileSync(filePath, dataBuffer);
-		ctx.body = {
-			code: 0,
-			data: `http://localhost:${port}/upload${fileName + ext}`,
-			message: 'success'
-		};
-	} catch (err) {
-		log.error(err);
-		ctx.body = {
-			code: -1,
-			error: err,
-			message: '系统错误'
-		};
-	}
+	const base64Data = form.data.replace(/^data:image\/\w+;base64,/, "");
+	const dataBuffer = Buffer.from(base64Data, 'base64');
+	fs.writeFileSync(filePath, dataBuffer);
+	ctx.body = {
+		code: 0,
+		data: `http://localhost:${port}/upload${fileName + ext}`,
+		message: 'success'
+	};
 }

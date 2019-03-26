@@ -27,17 +27,18 @@ div.content
                     div(v-on:click="showTab(2)" :class="{active:tabIndex==2}") 消息
                         span(v-if="dealCount") {{dealCount}}    
                 ul.friends(v-if="tabIndex == 0")
-                    li(v-for="item in friends" :key="item.id" v-on:contextmenu.prevent="menu")
+                    li(v-for="item in friends" :key="item.id" :class="{online:item.status == 1}" v-on:contextmenu.prevent="menu($event,item)")
                         div.avatar(v-on:click="profile(item)")
                             img(:src="item.avatar? item.avatar: aPic.src") 
                         p(v-on:click="chatWin(item)") {{item.nick}}
+                        span(v-if="item.reads && item.reads > 0") ({{item.reads}})
                 ul.groups(v-if="tabIndex == 1")
                     li(v-for="item in groups" :key="item.id")
                         div.avatar(v-on:click="profile(item)")
                             img(:src="gPic.src") 
                         p(v-on:click="chatWin(item)") {{item.name}}
                 ul.msgs(v-if="tabIndex == 2")
-                    li(v-for="item in msgs" :key="item.id")
+                    li(v-for="(item,i) in msgs" :key="i")
                         time {{item.date}} 
                         p 
                             a(href="javascript:;" v-on:click="msgTo(item)") {{item.nick}} 
@@ -52,18 +53,27 @@ div.content
                             template(v-if="item.status == 2")
                                 span 已拒绝
 
+    div.menu(v-if="menus.visible" :style="{top:menus.top+'px',left:menus.left+'px'}" v-on:mouseleave="closeMenu")
+        p(v-on:click="profile(menus.info)") 详 情
+        p(v-on:click="chatWin(menus.info)") 聊 天
+        p(v-on:click="removeFriend(menus.info)") 删 除
+
     component(:is="item.component"  v-for="(item,i) in wins" :key="item.id" 
         :info="item.info"
         :sty="item.sty"
+        :msgs="item.msgs"
+        :socket = "item.socket"
         v-on:close="closeWin(i)"
         v-on:setZ="setZ(i)")
 </template>
 
 <script>
 import { mapState, mapGetters } from "vuex";
-import io from 'socket.io-client';
+import io from "socket.io-client";
 import MsgWin from "./MsgWin.vue";
 import Profile from "./Profile.vue";
+import { formatTime } from "../common/util";
+import { get, post } from "../common/request";
 
 export default {
     name: "index",
@@ -71,34 +81,79 @@ export default {
         return {
             isSearch: false,
             tabIndex: 0,
+            menus: {
+                info: {},
+                visible: false,
+                top: 0,
+                left: 0
+            },
             wins: [],
             aPic: {
                 src: require("../assets/avatar.jpg")
             },
             gPic: {
                 src: require("../assets/group.jpg")
-            }
+            },
+            socket: {}
         };
     },
-    created(){
-        // const socket = io('http://localhost:3001');
-        // socket.on('open', function () {
-        //     showTip('socket io is open !');
-        //     init();
-        // });
-        // //监听用户离开
-        // socket.on('userout',removeUser);
+    async created() {
+        const token = localStorage.getItem("token") || "";
+        if(!token){
+            return this.$router.push("/sign/log");
+        }
+        await this.$store.dispatch("getInfo");
 
-        // //监听message事件，打印消息信息
-        // socket.on('message', function (data) {
-        //     console.log(data);
-        //     appendMsg(data);
+        this.socket = io("http://localhost:3001?token=" + token);
+
+        // main
+        // this.socket.on('open', res => { });
+
+        //注册用户信息
+        this.socket.emit("sign", this.selfInfo, res => {
+            // console.log(res);
+            this.$store.commit("friendStatus", res.data);
+            this.socket.on("userin", map => {
+                this.$store.commit("friendStatus", map);
+            });
+            this.socket.on("userout", map => {
+                this.$store.commit("friendStatus", map);
+            });
+            this.socket.on('auth',data => {
+                alert(data.message);
+                this.$store.commit('logout');
+            });
+
+            //接收好友申请
+            this.socket.on("apply", data => {
+                this.$store.commit('addMsg',data);
+            });
+            //接收聊天信息
+            this.socket.on("reply", (user, data) => {
+                // data.date = formatTime(data.date);
+                this.sendMsg(user, data);
+            });
+        });
+
+        // 打开chat
+        // this.chatSocket = io('http://localhost:3001/chat?token='+token,{ forceNew: true });
+        // this.chatSocket.on('open', res => {
+        //     console.log(res);
         // });
-        // socket.send({ type: 'sign', data: user });
+    },
+    beforeDestroy() {
+        this.socket.close();
     },
     computed: {
         ...mapState(["selfInfo"]),
-        ...mapGetters(["isLogin","dealCount","searchs","friends","groups","msgs"])
+        ...mapGetters([
+            "isLogin",
+            "dealCount",
+            "searchs",
+            "friends",
+            "groups",
+            "msgs"
+        ])
     },
     watch: {
         isLogin: {
@@ -108,26 +163,46 @@ export default {
                 if (val === false) {
                     that.$router.push("/sign/log");
                 } else {
-                    that.$store.dispatch('getInfo');
+                    that.$store.dispatch("getInfo");
                 }
-            },
-            immediate: true //进入组件立即执行一次
+            }
+            // ,immediate: true //进入组件立即执行一次
         }
     },
     methods: {
-        menu(){
-            console.log(11);
+        menu(e, info) {
+            const cx = e.clientX,
+                cy = e.clientY,
+                ol = e.target.offsetLeft + e.target.offsetWidth / 3,
+                ot = e.target.offsetTop + e.target.offsetHeight;
+
+            this.menus = {
+                info: info,
+                visible: true,
+                top: ot,
+                left: ol
+            };
+        },
+        closeMenu() {
+            this.menus.visible = false;
+        },
+        removeFriend(info) {
+            this.$store.dispatch("removeFriend", info, this.closeMenu);
         },
         accept(item) {
-            this.$store.dispatch('accept',item);
+            this.$store.dispatch("accept", item);
         },
         reject(item) {
-            this.$store.dispatch('reject',item);
+            this.$store.dispatch("reject", item);
         },
         addWin(info, com) {
-            if ( this.wins.filter( w => w.component == com && w.info.id == info.id )[0] ) return;
+            if (this.wins.find( w => w.component == com && w.info.id == info.id )){
+                return;
+            }
             let l = this.wins.length;
             this.wins.push({
+                msgs: info.msgs||[],
+                socket: this.socket,
                 info,
                 sty: {
                     left: l * 30 + 270,
@@ -139,26 +214,39 @@ export default {
             this.setZ(l);
         },
         chatWin(info) {
-            this.addWin(info, MsgWin);
+            this.friends.find(i=>i.id == info.id).reads = 0;
+            get('/getmsg',{id:info.id}).then(res=>{
+                this.addWin({...info,msgs:res.data}, MsgWin);
+            }).catch(err=>{
+                alert(err.message);
+            });
         },
         profile(info) {
             this.addWin(info, Profile);
         },
         searchTo(info) {
-            if (this.friends.findIndex(i => i.id == info.id) > -1) {
+            if (this.friends.find(i => i.id == info.id)) {
                 this.chatWin(info);
             } else {
                 this.profile(info);
             }
         },
         msgTo(info) {
-            this.profile(Object.assign({},info,{id:info.from_id}));
+            this.profile(Object.assign({}, info, { id: info.from_id }));
         },
         setZ(i) {
             this.wins.forEach((item, index) => {
-                if (index == i) item.z = 1;
-                else item.z = 0;
+                if (index == i) item.sty.z = 1;
+                else item.sty.z = 0;
             });
+        },
+        sendMsg(user, data) {
+            let selWin = this.wins.find(w => w.component == MsgWin && w.info.id == user.id);
+            if (selWin) {
+                selWin.msgs.push({ ...data, ...user });
+            } else {
+                this.$store.commit('addNoReads',user)
+            }
         },
         closeWin(i) {
             this.wins.splice(i, 1);
@@ -181,7 +269,7 @@ export default {
         search(e) {
             const val = e.target.value.trim();
             if (!val) return;
-            this.$store.dispatch('search',val);
+            this.$store.dispatch("search", val);
         }
     }
 };
@@ -189,6 +277,11 @@ export default {
 
 <style lang="scss" scoped>
 $blue: hsl(200, 100%, 45%);
+@mixin nowrap {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .content {
     height: 100%;
     width: 1000px;
@@ -239,9 +332,6 @@ $blue: hsl(200, 100%, 45%);
         }
         h2 {
             width: 170px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             font-weight: normal;
             font-size: 16px;
         }
@@ -346,8 +436,7 @@ $blue: hsl(200, 100%, 45%);
             }
         }
         .friends,
-        .groups,
-        .searchs {
+        .groups {
             box-sizing: border-box;
             margin: 0;
             padding-left: 16px;
@@ -359,6 +448,8 @@ $blue: hsl(200, 100%, 45%);
                 align-items: center;
                 justify-content: flex-start;
                 margin-top: 20px;
+                color: #aaa;
+                opacity: 0.5;
                 cursor: pointer;
                 .avatar {
                     width: 30px;
@@ -366,31 +457,33 @@ $blue: hsl(200, 100%, 45%);
                     border: 1px solid #fff;
                     border-radius: 50%;
                     overflow: hidden;
-                    &:hover {
-                        border-color: hsl(200, 100%, 40%);
-                    }
                     img {
                         width: 100%;
                         height: 100%;
                     }
                 }
-                &.online {
-                    color: $blue;
-                    .avatar {
-                        border: 1px solid $blue;
-                    }
-                }
                 p {
-                    width: 160px;
+                    max-width: 150px;
                     margin: 0;
                     padding-left: 10px;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    &:hover {
-                        color: hsl(200, 100%, 40%);
-                    }
+                    @include nowrap;
                 }
+                span{
+                    font-size: 13px;
+                    padding-left: 4px;
+                    color: #d00;
+                }
+                &:hover,
+                &.online {
+                    opacity: 1;
+                    color: $blue;
+                }
+            }
+        }
+        .searchs{
+            @extend .friends;
+            li{
+                opacity: 1;
             }
         }
         .msgs {
@@ -420,6 +513,31 @@ $blue: hsl(200, 100%, 45%);
                     }
                 }
             }
+        }
+    }
+}
+.menu {
+    box-sizing: border-box;
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-radius: 4px;
+    overflow: hidden;
+    p {
+        box-sizing: border-box;
+        margin: 0;
+        width: 60px;
+        line-height: 2;
+        border-bottom: 1px solid #ccc;
+        font-size: 12px;
+        text-align: center;
+        cursor: pointer;
+        &:hover {
+            color: $blue;
         }
     }
 }

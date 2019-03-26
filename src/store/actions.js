@@ -1,7 +1,7 @@
 import { get, post } from "../common/request";
 
 export const getInfo = ({ commit }) => {
-    get("/getInfo").then(res => {
+    return  get("/getinfo").then(res => {
         if (res.code == 0) {
             commit("setSelfInfo", res.data.user);
             commit("setFriends", res.data.friends);
@@ -10,12 +10,11 @@ export const getInfo = ({ commit }) => {
             commit("logout");
         }
     }).catch(err => {
-        alert(err.message);
     });
 }
 
 export const updateSelf=({commit},form,cb)=>{
-    post("/updateInfo", form).then(res => {
+    post("/updateinfo", form).then(res => {
         if (res.code == 0) {
             commit("updateSelfInfo", form);
             cb;

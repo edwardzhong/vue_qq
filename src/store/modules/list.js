@@ -23,7 +23,7 @@ export default {
             }
         },
         update(state, item) {
-            let sel = state.list.filter(i => i.id == item.id)[0];
+            let sel = state.list.find(i => i.id == item.id);
             if (sel) {
                 Object.assign(sel, item);
             }

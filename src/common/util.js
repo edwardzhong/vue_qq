@@ -17,6 +17,22 @@ function compressPicture(img,size) {
     return canvas.toDataURL("image/jpeg");
 }
 
-export default {
-    compressPicture
+function formatTime (i) {
+    const d = new Date(String(i)),
+        n = new Date(),
+        day = n.getDate() - d.getDate(),
+        date = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2);
+    if (day == 0) {
+        i = `${date}`
+    } else if (day == 1) {
+        i = `昨天 ${date}`
+    } else {
+        i = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()} ${date}`
+    }
+    return i;
+}
+
+export {
+    compressPicture,
+    formatTime
 }

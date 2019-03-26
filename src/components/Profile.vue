@@ -31,13 +31,14 @@
             button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 加为好友
 </template>
 <script>
-import { mapState,mapGetters } from "vuex";
+import { mapState, mapGetters } from "vuex";
 import { post } from "../common/request";
 import { compressPicture } from "../common/util";
 
 export default {
     name: "profile",
     props: {
+        socket: Object,
         info: Object,
         sty: Object
     },
@@ -69,22 +70,29 @@ export default {
             if (val) form.apply_message = val;
             post("/apply", form).then(res => {
                 if (res.code == 0) {
+                    that.socket.emit("sendApply", info.id, {
+                        ...that.selfInfo,
+                        ...form,
+                        from_id: that.selfInfo.id
+                    });
                     that.$emit("close");
                 } else {
                     alert(err.message);
                 }
-            }).catch(err => {
+            }) .catch(err => {
                 alert(err.message);
             });
         },
         save() {
             let form = {
-                nick: this.$refs.nick.value.trim(),
-                signature: this.$refs.signature.value.trim()
-            },
-            imgsrc = this.$refs.img.dataset.src || "";
-            if (imgsrc) { form.avatar=imgsrc; }
-            this.$store.dispatch('updateSelf',form,this.$emit("close"));
+                    nick: this.$refs.nick.value.trim(),
+                    signature: this.$refs.signature.value.trim()
+                },
+                imgsrc = this.$refs.img.dataset.src || "";
+            if (imgsrc) {
+                form.avatar = imgsrc;
+            }
+            this.$store.dispatch("updateSelf", form, this.$emit("close"));
         },
         uploadFile(e) {
             const that = this;
@@ -114,17 +122,19 @@ export default {
                 let img = new Image();
                 img.src = e.target.result;
                 img.onload = function() {
-                    const base64 = compressPicture(img,128);
-                    post("/upload", { data: base64, name: fileName }).then(res => {
-                        if (res.code == 0) {
-                            that.$refs.img.src = res.data;
-                            that.$refs.img.dataset.src = res.data;
-                        } else {
-                            alert(res.message);
-                        }
-                    }).catch(err => {
-                        alert(err.message);
-                    });
+                    const base64 = compressPicture(img, 128);
+                    post("/upload", { data: base64, name: fileName })
+                        .then(res => {
+                            if (res.code == 0) {
+                                that.$refs.img.src = res.data;
+                                that.$refs.img.dataset.src = res.data;
+                            } else {
+                                alert(res.message);
+                            }
+                        })
+                        .catch(err => {
+                            alert(err.message);
+                        });
                 };
             };
             fr.readAsDataURL(file);

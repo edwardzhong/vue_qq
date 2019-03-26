@@ -10,7 +10,7 @@ export default {
         dealCount: state => state.msgs.filter(i => i.status == 0).length
     },
     actions: {
-        accept:({commit},form)=>{
+        accept: ({ commit }, form) => {
             post("/accept", { friend_id: form.from_id }).then(res => {
                 if (res.code == 0) {
                     form.id = form.from_id;
@@ -24,7 +24,7 @@ export default {
                 alert(err.message);
             });
         },
-        reject:({commit},form)=>{
+        reject: ({ commit }, form) => {
             post("/reject", { friend_id: form.from_id }).then(res => {
                 if (res.code == 0) {
                     form.status = 2;
@@ -47,6 +47,9 @@ export default {
                     i.status = payload.status;
                 }
             })
+        },
+        addMsg: (state, payload) => {
+            state.msgs.unshift(payload);
         }
     }
 }

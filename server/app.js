@@ -11,11 +11,12 @@ const favicon = require('koa-favicon')
 // const tpl = require('./middleware/tpl')
 const jwt = require('./middleware/jwt')
 const verify = require('./middleware/verify')
+const errorHandler = require('./middleware/error')
 const addRouters = require('./router')
 const config = require('./config/app')
 const server = require('http').createServer(app.callback())
 const io = require('socket.io')(server)
-const appSocket = require('./socket')
+const addSocket = require('./socket')
 const path = require('path')
 const baseDir = path.normalize(__dirname + '/..')
 
@@ -62,21 +63,20 @@ app.use(jwt({
 }));
 
 // need login verify url
-app.use(verify([
-    '/upload',
-    '/userInfo',
-    '/logout',
-    '/getInfo',
-    '/apply',
-    '/accept',
-    '/reject',
-    '/updateInfo'
-]));
+app.use(verify({
+    exclude:[
+        '/login',
+        '/register',
+        '/search'
+    ]
+}));
 
 // set template engine
 // app.use(tpl({
 //     path: baseDir + '/dist'
 // }));
+
+app.use(errorHandler());// handle the error
 
 // add route
 addRouters(router);
@@ -102,8 +102,6 @@ app.on('error', (err, ctx) => {
     }
 });
 
-
-
 if (!module.parent) {
     const { port, socketPort } = config;
     /**
@@ -117,7 +115,7 @@ if (!module.parent) {
     /**
      * socket.io
      */
-    appSocket(io);
+    addSocket(io);
     server.listen(socketPort);
     log.info(`=== socket listening on port ${socketPort} ===`)
     console.log('socket server running at: http://localhost:%d', socketPort);

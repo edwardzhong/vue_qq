@@ -6,6 +6,6 @@ module.exports = {
     port: 3000,
     socketPort: 3001,
     secret: 'JEFFJWT',
-    exp: 60 * 60,
+    exp: 60 * 60 * 2,
 };
 

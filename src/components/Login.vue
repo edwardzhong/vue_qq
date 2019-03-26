@@ -41,13 +41,9 @@ export default {
             post("/login", { email: this.email, password: this.password })
                 .then(res => {
                     if (res.code == 0) {
-                        const token = localStorage.getItem("token");
-                        if (!token) {
-                            alert("token not exist");
-                        } else {
-                            that.$store.commit("setLoginInfo", { token,...res.data });
-                            that.$router.replace("/");
-                        }
+                        that.$store.commit("setLoginInfo");
+                        that.$store.commit("setSelfInfo", res.data);
+                        that.$router.replace("/");
                     } else {
                         alert(res.message);
                     }

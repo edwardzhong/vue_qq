@@ -1,9 +1,10 @@
 const token = localStorage.getItem("token");
+const selfInfo = JSON.parse(localStorage.getItem('selfInfo') || '{}');
 
 export const state = {
     modal: { visible: false },
     loginInfo: { token },
-    selfInfo: {}
+    selfInfo: selfInfo
 }
 
 export const mutations = {
@@ -13,12 +14,12 @@ export const mutations = {
     closeModal: () => {
         state.modal.visible = false;
     },
-    setLoginInfo: (state, payload) => {
-        state.loginInfo = payload;
-        state.selfInfo = payload;
+    setLoginInfo: (state) => {
+        state.loginInfo = { token: localStorage.getItem("token") };
     },
     setSelfInfo: (state, payload) => {
         state.selfInfo = payload;
+        localStorage.setItem("selfInfo", JSON.stringify(payload));
     },
     updateSelfInfo: (state, payload) => {
         state.selfInfo = Object.assign(state.selfInfo, payload);

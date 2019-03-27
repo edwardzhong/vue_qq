@@ -23,7 +23,7 @@ CREATE TABLE `user` (
 drop table if exists `group`;
 CREATE TABLE `group` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `avatar` varchar(50) DEFAULT NULL COMMENT '群图像',
+  `avatar` varchar(200) DEFAULT NULL COMMENT '群图像',
   `name` varchar(20) NOT NULL COMMENT '组名',
   `desc` varchar(200) DEFAULT NULL COMMENT '介绍',
   `create_id` char(36) NOT NULL COMMENT '群主id',
@@ -44,18 +44,20 @@ CREATE TABLE `message` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='消息表';
 
-drop table if exists `friend_apply`;
-CREATE TABLE `friend_apply` (
+drop table if exists `apply`;
+CREATE TABLE `apply` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
   `from_id` char(36) NOT NULL COMMENT '申请方id',
   `to_id` char(36) NOT NULL COMMENT '接受方id',
+  `group_id` int(11) DEFAULT NULL COMMENT '组id',
+  `type` tinyint(1) DEFAULT 0 COMMENT '类型(0 用户 1 组群)',
   `status` tinyint(1) DEFAULT 0 COMMENT '状态(0 待处理  1 已同意 2 已拒绝)',
   `apply_message` varchar(200) DEFAULT NULL COMMENT '附加消息',
   `reply` varchar(200) DEFAULT NULL COMMENT '回复消息',
   `create_date` int(10) unsigned DEFAULT NULL COMMENT '创建时间',
   `update_date` int(10) unsigned DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='好友申请表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='申请表';
 
 drop table if exists `user_friend`;
 CREATE TABLE `user_friend` (
@@ -86,8 +88,8 @@ drop trigger if exists `user_update`;
 drop trigger if exists `group_insert`; 
 drop trigger if exists `group_update`; 
 drop trigger if exists `message_insert`; 
-drop trigger if exists `friend_apply_insert`; 
-drop trigger if exists `friend_apply_update`; 
+drop trigger if exists `apply_insert`; 
+drop trigger if exists `apply_update`; 
 drop procedure if exists `getpage`;
 
 -- Do nothing, if appear 'ERROR 1064 (42000): ...', it's ok !
@@ -168,9 +170,9 @@ end if;
 END
 $$
 
--- friend_apply表insert触发器
+-- apply表insert触发器
 delimiter $$
-create trigger `friend_apply_insert` before insert on `friend_apply`
+create trigger `apply_insert` before insert on `apply`
 for each ROW
 begin
 if (new.`create_date` = 0 or new.`create_date` is null)
@@ -182,9 +184,9 @@ end if;
 END
 $$
 
--- friend_apply表update触发器
+-- apply表update触发器
 delimiter $$
-create trigger `friend_apply_update` before update on `friend_apply`
+create trigger `apply_update` before update on `apply`
 for each ROW
 begin
 if ((new.`status` <> old.`status`) or (new.`status` is not null and old.`status` is null) 

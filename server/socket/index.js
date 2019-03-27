@@ -22,8 +22,7 @@ const deleteUser = sid => {
 };
 
 const currTime = () => {
-    const d = new Date(),
-        date = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const d = new Date(), date = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
     return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2) + ':' + ('0' + d.getSeconds()).slice(-2);
 };
 
@@ -75,13 +74,17 @@ module.exports = io => {
             }
         });
         
-        socket.on('status',() => {
+        socket.on('acceptFriend',(uid) => {
+            const sid = maps[uid];
+            if(sid){
+                socket.to(sid).emit('refresh',maps);
+            }
             socket.emit('checkStatus',maps);
         });
 
         socket.on('sendApply', (uid, data) => {
             socket.to(maps[uid]).emit('apply', { ...data, date: currTime() });
-        })
+        });
 
         socket.on('disconnect', () => {
             const user = deleteUser(socket.id);

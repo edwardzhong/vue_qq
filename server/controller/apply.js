@@ -1,10 +1,11 @@
 const { stringFormat } = require('../common/util')
-const friendDao = require('../daos/friend')
+const { transaction } = require('../daos/common')
+const applyDao = require('../daos/apply')
 
 exports.apply = async function (ctx) {
     const form = ctx.request.body;
     const token = await ctx.verify();
-    const ret = await friendDao.apply({ ...form, from_id: token.uid });
+    const ret = await applyDao.apply({ ...form, from_id: token.uid });
     if (!ret.affectedRows) {
         return ctx.body = {
             code: 2,
@@ -18,19 +19,15 @@ exports.apply = async function (ctx) {
 }
 
 exports.accept = async function (ctx) {
-    const { friend_id } = ctx.request.body;
+    const { id, friend_id } = ctx.request.body;
     const token = await ctx.verify();
-    const ret = await friendDao.reply([{ status: 1 }, friend_id, token.uid]);
-    if (!ret.affectedRows) {
+    const ret = await transaction([
+        ['update apply set status = 1 where id = ? and to_id = ?', [id, token.uid]],
+        stringFormat("replace into user_friend values ('$1','$2'),('$2','$1')", token.uid, friend_id)
+    ]);
+    if (!ret[0].affectedRows || !ret[1].affectedRows) {
         return ctx.body = {
             code: 2,
-            message: '添加好友失败'
-        };
-    }
-    const addRet = await friendDao.sql(stringFormat("replace into user_friend values ('$1','$2'),('$2','$1')", token.uid, friend_id));
-    if (!addRet.affectedRows) {
-        return ctx.body = {
-            code: 3,
             message: '添加好友失败'
         };
     }
@@ -40,10 +37,28 @@ exports.accept = async function (ctx) {
     };
 }
 
+exports.acceptGroup = async function (ctx) {
+    const { id, group_id, user_id } = ctx.request.body;
+    const ret = await transaction([
+        ['update `apply` set status = 1 where id = ?', [id]],
+        ['replace into `user_group` values (?,?)', [user_id, group_id]]
+    ]);
+    if (!ret[0].affectedRows || !ret[1].affectedRows) {
+        return ctx.body = {
+            code: 2,
+            message: '加入群组失败'
+        };
+    }
+    ctx.body = {
+        code: 0,
+        message: '加入群组成功'
+    };
+}
+
 exports.reject = async function (ctx) {
-    const { friend_id } = ctx.request.body;
+    const { id } = ctx.request.body;
     const token = await ctx.verify();
-    const ret = await friendDao.reply([{ status: 2 }, friend_id, token.uid]);
+    const ret = await applyDao.reply([{ status: 2 }, id, token.uid]);
     if (!ret.affectedRows) {
         return ctx.body = {
             code: 2,
@@ -54,5 +69,4 @@ exports.reject = async function (ctx) {
         code: 0,
         message: '操作成功'
     };
-
 }

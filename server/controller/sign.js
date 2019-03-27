@@ -76,18 +76,3 @@ exports.register = async function (ctx, next) {
 		data: { id, num, email, nick: email, signature: '', status: 0 }
 	}
 };
-
-/**
- * user logout
- * 注销
- * @param  {[type]}   ctx  [description]
- * @param  {Function} next [description]
- * @return {[type]}        [description]
- */
-exports.logout = async function (ctx, next) {
-	ctx.sign({ name: 'logout' }, 1);
-	ctx.body = {
-		code: 0,
-		message: '注销成功'
-	}
-};

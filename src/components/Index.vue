@@ -1,13 +1,13 @@
 <template lang="pug">
 div.content
-    div.bar(v-drag)
-        header
+    div.bar
+        header(v-drag)
             div.avatar(v-on:click="profile(selfInfo)")
                 img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src") 
             h2 {{ selfInfo.nick }}
             i.icon-logout(v-on:click="logout")
         div.body
-            div(class="search")
+            div.search
                 div
                     input(type="search" placeholder="search" ref="ser" v-on:keyup.enter="search($event)")
                     span(v-on:click="hideSearch") 取消
@@ -15,11 +15,17 @@ div.content
                     i.icon-search
                     span search
             div.search-panel(v-if="isSearch")
-                ul.searchs
-                    li(v-for="item in searchs" :key="item.id")
-                        div.avatar(v-on:click="profile(item)")
-                            img(:src="item.avatar? item.avatar: aPic.src") 
-                        p(v-on:click="searchTo(item)") {{item.name}}
+                div.searchs
+                    ul
+                        li(v-for="item in searchs.users" :key="item.id")
+                            div.avatar(v-on:click="profile(item)")
+                                img(:src="item.avatar? item.avatar: aPic.src") 
+                            p(v-on:click="userTo(item)") {{item.name}}
+                    ul
+                        li(v-for="item in searchs.groups" :key="item.id")
+                            div.avatar(v-on:click="groupProfile(item)")
+                                img(:src="item.avatar? item.avatar: aPic.src") 
+                            p(v-on:click="groupTo(item)") {{item.name}}
             div.main-panel(v-if="!isSearch")        
                 nav
                     div(v-on:click="showTab(0)" :class="{active:tabIndex==0}") 好友
@@ -32,21 +38,29 @@ div.content
                             img(:src="item.avatar? item.avatar: aPic.src") 
                         p(v-on:click="chatWin(item)") {{item.nick}}
                         span(v-if="item.reads && item.reads > 0") ({{item.reads}})
-                ul.groups(v-if="tabIndex == 1")
-                    li(v-for="item in groups" :key="item.id")
-                        div.avatar(v-on:click="profile(item)")
-                            img(:src="gPic.src") 
-                        p(v-on:click="chatWin(item)") {{item.name}}
+                div.groups(v-if="tabIndex == 1")
+                    i.icon-plus(v-on:click="inputGroup")
+                    input(type="text" v-if="inputvisble" v-on:keyup.enter="appendGroup" v-on:mouseleave="closeInputGroup")
+                    ul
+                        li(v-for="item in groups" :key="item.id")
+                            div.avatar(v-on:click="groupProfile(item)")
+                                img(:src="item.avatar? item.avatar:gPic.src") 
+                            p {{item.name}}
+                            i.icon-minus(v-if="item.create_id == selfInfo.id" v-on:click="deleteGroup(item)")
                 ul.msgs(v-if="tabIndex == 2")
-                    li(v-for="(item,i) in msgs" :key="i")
+                    li(v-for="(item,i) in msgs" :key="item.id")
                         time {{item.date}} 
                         p 
                             a(href="javascript:;" v-on:click="msgTo(item)") {{item.nick}} 
-                            span 申请成为好友
+                            span(v-if="item.type == 0") 申请成为好友
+                            span(v-if="item.type == 1") 申请加入群组
+                                a( v-if="item.group_name" href="javascript:;" v-on:click="msgToGroup(item)") {{item.group_name}}
+                                span(v-else) &nbsp;xxxx
                         p.msg "{{item.apply_message}}"
                         div.btns
                             template(v-if="item.status == 0")
-                                a(href="javascript:;" v-on:click="accept(item)") 同意
+                                a(href="javascript:;" v-if="item.type == 0" v-on:click="accept(item)") 同意
+                                a(href="javascript:;" v-if="item.type == 1" v-on:click="acceptGroup(item)") 同意
                                 a(href="javascript:;" v-on:click="reject(item)") 拒绝
                             template(v-if="item.status == 1")
                                 span 已同意
@@ -72,7 +86,7 @@ import { mapState, mapGetters } from "vuex";
 import io from "socket.io-client";
 import MsgWin from "./MsgWin.vue";
 import Profile from "./Profile.vue";
-import { formatTime } from "../common/util";
+import GroupProfile from "./GroupProfile.vue";
 import { get, post } from "../common/request";
 
 export default {
@@ -81,6 +95,7 @@ export default {
         return {
             isSearch: false,
             tabIndex: 0,
+            inputvisble: false,
             menus: {
                 info: {},
                 visible: false,
@@ -94,12 +109,12 @@ export default {
             gPic: {
                 src: require("../assets/group.jpg")
             },
-            socket: { close:() => {}}
+            socket: { close: () => {} }
         };
     },
     async created() {
         const token = localStorage.getItem("token") || "";
-        if(!token){
+        if (!token) {
             return this.$router.push("/sign/log");
         }
         await this.$store.dispatch("getInfo");
@@ -113,25 +128,29 @@ export default {
         this.socket.emit("sign", this.selfInfo, res => {
             // console.log(res);
             this.$store.commit("friendStatus", res.data);
-            this.socket.on("userin", (map,user) => {
+            this.socket.on("userin", (map, user) => {
                 this.$store.commit("friendStatus", map);
-                showTip(user,'上线了');
+                showTip(user, "上线了");
             });
-            this.socket.on("userout", (map,user) => {
+            this.socket.on("userout", (map, user) => {
                 this.$store.commit("friendStatus", map);
-                showTip(user,'下线了');
+                showTip(user, "下线了");
             });
-            this.socket.on('checkStatus',map => {
+            this.socket.on("checkStatus", map => {
                 this.$store.commit("friendStatus", map);
             });
-            this.socket.on('auth',data => {
+            this.socket.on("auth", data => {
                 alert(data.message);
-                this.$store.commit('logout');
+                this.$store.commit("logout");
+            });
+            this.socket.on("refresh", async map => {
+                await this.$store.dispatch("getInfo");
+                this.$store.commit("friendStatus", map);
             });
 
             //接收好友申请
             this.socket.on("apply", data => {
-                this.$store.commit('addMsg',data);
+                this.$store.commit("addMsg", data);
             });
             //接收聊天信息
             this.socket.on("reply", (user, data) => {
@@ -140,15 +159,15 @@ export default {
             });
         });
 
-        const showTip = (user,txt) =>{
-            const friend = this.friends.find(i=>i.id == user.id);
-            if(friend){
-                this.$store.commit('showTip',{name:friend.nick,txt});
-                setTimeout(()=>{
-                    this.$store.commit('closeTip');
-                },2500);
+        const showTip = (user, txt) => {
+            const friend = this.friends.find(i => i.id == user.id);
+            if (friend) {
+                this.$store.commit("showTip", { name: friend.nick, txt });
+                setTimeout(() => {
+                    this.$store.commit("closeTip");
+                }, 2500);
             }
-        }
+        };
         // 打开chat
         // this.chatSocket = io('http://localhost:3001/chat?token='+token,{ forceNew: true });
         // this.chatSocket.on('open', res => {
@@ -177,13 +196,39 @@ export default {
                 if (val === false) {
                     that.$router.push("/sign/log");
                 } else {
-                    that.$store.dispatch("getInfo");
+                    that.$store.dispatch("getinfo");
                 }
             }
             // ,immediate: true //进入组件立即执行一次
         }
     },
     methods: {
+        inputGroup() {
+            this.inputvisble = true;
+        },
+        closeInputGroup() {
+            this.inputvisble = false;
+        },
+        appendGroup(e) {
+            this.inputvisble = false;
+            const that = this;
+            const val = e.target.value.trim();
+            if (!val) return;
+            if (
+                this.groups.filter(g => g.create_id == this.selfInfo.id)
+                    .length >= 3
+            ) {
+                alert("最多只能建3个组");
+                return;
+            }
+            this.$store.dispatch("addGroup", {
+                name: val,
+                create_id: that.selfInfo.id
+            });
+        },
+        deleteGroup(item) {
+            this.$store.dispatch("delGroup", { id: item.id });
+        },
         menu(e, info) {
             const cx = e.clientX,
                 cy = e.clientY,
@@ -206,18 +251,23 @@ export default {
         },
         async accept(item) {
             await this.$store.dispatch("accept", item);
-            this.socket.emit('status');
+            this.socket.emit("acceptFriend", item.from_id);
         },
         reject(item) {
             this.$store.dispatch("reject", item);
         },
+        acceptGroup(item) {
+            this.$store.dispatch("acceptGroup", item);
+        },
         addWin(info, com) {
-            if (this.wins.find( w => w.component == com && w.info.id == info.id )){
+            if (
+                this.wins.find(w => w.component == com && w.info.id == info.id)
+            ) {
                 return;
             }
             let l = this.wins.length;
             this.wins.push({
-                msgs: info.msgs||[],
+                msgs: info.msgs || [],
                 socket: this.socket,
                 info,
                 sty: {
@@ -230,21 +280,40 @@ export default {
             this.setZ(l);
         },
         chatWin(info) {
-            this.friends.find(i=>i.id == info.id).reads = 0;
-            get('/getmsg',{id:info.id}).then(res=>{
-                this.addWin({...info,msgs:res.data}, MsgWin);
-            }).catch(err=>{
-                alert(err.message);
-            });
+            const selfriend = this.friends.find(i => i.id == info.id);
+            get("/getmsg", { id: info.id, reads: selfriend.reads })
+                .then(res => {
+                    selfriend.reads = 0;
+                    this.addWin({ ...info, msgs: res.data }, MsgWin);
+                })
+                .catch(err => {
+                    alert(err.message);
+                });
         },
         profile(info) {
             this.addWin(info, Profile);
         },
-        searchTo(info) {
+        groupProfile(info) {
+            this.addWin(info, GroupProfile);
+        },
+        userTo(info) {
             if (this.friends.find(i => i.id == info.id)) {
                 this.chatWin(info);
             } else {
                 this.profile(info);
+            }
+        },
+        groupTo(info) {
+            if (this.groups.find(i => i.id == info.id)) {
+                // this.chatWin(info);
+            } else {
+                this.groupProfile(info);
+            }
+        },
+        msgToGroup(info) {
+            const gInfo = this.groups.find(g => g.id == info.group_id);
+            if (gInfo) {
+                this.groupProfile(gInfo);
             }
         },
         msgTo(info) {
@@ -257,11 +326,13 @@ export default {
             });
         },
         sendMsg(user, data) {
-            let selWin = this.wins.find(w => w.component == MsgWin && w.info.id == user.id);
+            let selWin = this.wins.find(
+                w => w.component == MsgWin && w.info.id == user.id
+            );
             if (selWin) {
                 selWin.msgs.push({ ...data, ...user });
             } else {
-                this.$store.commit('addNoReads',user)
+                this.$store.commit("addNoReads", user);
             }
         },
         closeWin(i) {
@@ -451,8 +522,7 @@ $blue: hsl(200, 100%, 45%);
                 }
             }
         }
-        .friends,
-        .groups {
+        .friends {
             box-sizing: border-box;
             margin: 0;
             padding-left: 16px;
@@ -484,7 +554,7 @@ $blue: hsl(200, 100%, 45%);
                     padding-left: 10px;
                     @include nowrap;
                 }
-                span{
+                span {
                     font-size: 13px;
                     padding-left: 4px;
                     color: #d00;
@@ -496,10 +566,71 @@ $blue: hsl(200, 100%, 45%);
                 }
             }
         }
-        .searchs{
-            @extend .friends;
-            li{
-                opacity: 1;
+        .groups {
+            .icon-plus {
+                display: inline-block;
+                padding: 10px 10px 10px 20px;
+                cursor: pointer;
+                &:hover {
+                    color: $blue;
+                }
+            }
+            .icon-minus {
+                cursor: pointer;
+            }
+            input {
+                border: 1px solid #ccc;
+                border-radius: 2px;
+                padding: 3px;
+                width: 150px;
+                outline: none;
+            }
+            ul {
+                @extend .friends;
+                min-height: 261px;
+                max-height: 461px;
+                li {
+                    margin-top: 10px;
+                    opacity: 1;
+                }
+                p {
+                    width: 150px;
+                }
+            }
+        }
+        .searchs {
+            min-height: 334px;
+            max-height: 500px;
+            overflow-y: auto;
+            ul {
+                box-sizing: border-box;
+                margin: 0;
+                li {
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-start;
+                    margin-top: 15px;
+                    padding: 0 20px;
+                    color: #aaa;
+                    cursor: pointer;
+                    .avatar {
+                        width: 30px;
+                        height: 30px;
+                        border: 1px solid #fff;
+                        border-radius: 50%;
+                        overflow: hidden;
+                        img {
+                            width: 100%;
+                            height: 100%;
+                        }
+                    }
+                    p {
+                        max-width: 150px;
+                        margin: 0;
+                        padding-left: 10px;
+                        @include nowrap;
+                    }
+                }
             }
         }
         .msgs {
@@ -517,7 +648,6 @@ $blue: hsl(200, 100%, 45%);
                 }
                 p {
                     margin: 0;
-                    // padding-left: 10px;
                     line-height: 1.6;
                 }
                 .btns {

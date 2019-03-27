@@ -1,6 +1,6 @@
-const exportFunctions = require('./exportDao');
+const { exportDao } = require('./common');
 
-module.exports = exportFunctions({
+module.exports = exportDao({
     query: null,
     getUserMsg: 'select * from message where send_id in(?,?) and receive_id in(?,?) limit 30',
     insertMsg: 'insert into message set ?',

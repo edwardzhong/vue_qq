@@ -8,7 +8,7 @@ export default {
         friends: state => state.friends
     },
     actions: {
-        removeFriend: ({ commit }, form) => {
+        removeFriend({ commit }, form){
             return post('/delfriend', { friend_id: form.id }).then(res => {
                 if (res.code == 0) {
                     commit('removeFriend', form);
@@ -17,21 +17,21 @@ export default {
                 } else {
                     alert(res.message);
                 }
-            })
+            });
         }
     },
     mutations: {
-        setFriends: (state, payload) => {
+        setFriends(state, payload){
             state.friends = payload;
         },
-        addFriend: (state, payload) => {
+        addFriend(state, payload){
             if (state.friends.find(i => i.id == payload.id)) return;
             state.friends.push(payload);
         },
-        removeFriend: (state, payload) => {
+        removeFriend(state, payload) {
             state.friends = state.friends.filter(i => i.id !== payload.id);
         },
-        friendStatus: (state, payload) => {
+        friendStatus(state, payload) {
             state.friends.forEach((item, i) => {
                 if (payload.hasOwnProperty(item.id)) {
                     item.status = 1;
@@ -40,7 +40,7 @@ export default {
                 }
             });
         },
-        addNoReads: (state, payload) => {
+        addNoReads(state, payload) {
             let i = state.friends.find(i => i.id == payload.id);
             if (i) {
                 i.reads = i.reads || 0;

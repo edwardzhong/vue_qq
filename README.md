@@ -6,6 +6,10 @@ this is vue web app template
 * webpack 4
 * pug
 * scss
+* koa2
+* socket.io
+* axios
+
 
 ## Project setup
 ```
@@ -14,10 +18,20 @@ npm install
 
 ### Compiles and hot-reloads for development
 ```
-npm run serve
+npm run watch
 ```
 
 ### Compiles and minifies for production
 ```
 npm run dist
 ```
+
+### run node server
+```
+npm run server
+```
+
+限制输入字符的长度
+个人签名的显示
+上线下线隐身状态的设置
+信息提示框

@@ -2,35 +2,33 @@
     div.profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
         v-on:click.stop="$emit('setZ')")
         header(v-drag)
-            h2 {{infoType == 0 ? '用户信息':info.nick}}
+            h2 {{info.name}}
             div(v-on:click.stop="$emit('close')") ×
         div.body
             div.avatar
-                img(:src="info.avatar? info.avatar: aPic.src" ref="img")
+                img(:src="info.avatar? info.avatar: gPic.src" ref="img")
                 input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
             div(class="form form-aligned")
                 div.control-group
                     label 类型
-                    p 个人
+                    p 群组
                 div.control-group
-                    label 号码
-                    p {{info.num}}
+                    label 群主
+                    p
+                        a(href="javascript:;") {{info.create_name}}
                 div.control-group
-                    label email
-                    p {{info.email}}
+                    label 名称
+                    input(type="text" :value ="info.name" v-if="infoType == 0" ref="name")
+                    p(v-if="infoType!=0") {{info.name}}
                 div.control-group
-                    label 昵称
-                    input(type="text" :value ="info.nick" v-if="infoType == 0" ref="nick")
-                    p(v-if="infoType!=0") {{info.nick}}
-                div.control-group
-                    label 个人签名
-                    textarea(v-if="infoType == 0" ref="signature") {{info.signature}}
-                    p(v-if="infoType!=0") {{info.signature}}
+                    label 介绍
+                    textarea(v-if="infoType == 0" ref="desc") {{info.desc}}
+                    p(v-if="infoType!=0") {{info.desc}}
                 div.control-group(v-if="infoType == 2")
                     label 验证信息
                     input(type="text" ref="verify")
-            button(class="button" v-if="infoType == 0" v-on:click="save") save
-            button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 加为好友
+            button(class="button" v-if="infoType == 0" v-on:click="save(info)") save
+            button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 申请加入
 </template>
 <script>
 import { mapState, mapGetters } from "vuex";
@@ -38,66 +36,66 @@ import { post } from "../common/request";
 import { compressPicture } from "../common/util";
 
 export default {
-    name: "profile",
+    name: "groupProfile",
     props: {
         socket: Object,
         info: Object,
         sty: Object
     },
     created() {
-        if (this.selfInfo.id == this.info.id) {
+        if (this.selfInfo.id == this.info.create_id) {
             this.infoType = 0;
-        } else if (this.friends.find(i => i.id == this.info.id)) {
+        } else if (this.groups.find(i => i.id == this.info.id)) {
             this.infoType = 1;
         }
     },
     data() {
         return {
-            aPic: {
-                src: require("../assets/avatar.jpg")
+            gPic: {
+                src: require("../assets/group.jpg")
             },
-            infoType: 2, //0 自己 1 好友 2 陌生人
+            infoType: 2, //0 自己 1 已经加入 2 未加入
             showDailog: false
         };
     },
     computed: {
         ...mapState(["selfInfo"]),
-        ...mapGetters(["friends"])
+        ...mapGetters(["groups"])
     },
     methods: {
-        apply(info) {
-            const that = this;
-            const val = this.$refs.verify.value.trim();
-            let form = { to_id: info.id };
-            if (val) form.apply_message = val;
-            post("/apply", form)
-                .then(res => {
-                    if (res.code == 0) {
-                        that.socket.emit("sendApply", info.id, {
-                            ...that.selfInfo,
-                            ...form,
-                            from_id: that.selfInfo.id
-                        });
-                        that.$emit("close");
-                    } else {
-                        alert(err.message);
-                    }
-                })
-                .catch(err => {
-                    alert(err.message);
-                });
-        },
-        async save() {
+        async save(info) {
             let form = {
-                    nick: this.$refs.nick.value.trim(),
-                    signature: this.$refs.signature.value.trim()
+                    id: info.id,
+                    name: this.$refs.name.value.trim(),
+                    desc: this.$refs.desc.value.trim()
                 },
                 imgsrc = this.$refs.img.dataset.src || "";
             if (imgsrc) {
                 form.avatar = imgsrc;
             }
-            await this.$store.dispatch("updateSelf", form);
+            await this.$store.dispatch("updateGroup", form);
             this.$emit("close");
+        },
+        apply(info) {
+            const that = this;
+            const val = this.$refs.verify.value.trim();
+            let form = { to_id: info.create_id, type: 1, group_id: info.id };
+            if (val) form.apply_message = val;
+            post("/apply", form) .then(res => {
+                if (res.code == 0) {
+                    // that.socket.emit("sendApply", info.id, {
+                    //     ...that.selfInfo,
+                    //     ...form,
+                    //     from_id: that.selfInfo.id
+                    // });
+                    that.$emit("close");
+                } else {
+                    alert(err.message);
+                }
+            })
+            .catch(err => {
+                alert(err.message);
+            });
         },
         uploadFile(e) {
             const that = this;
@@ -213,18 +211,18 @@ $blue: hsl(200, 100%, 45%);
     }
     .form {
         input {
-            width: 200px;
+            width: 250px;
         }
         p {
             display: inline-block;
-            width: 200px;
+            width: 250px;
             margin: 0;
             text-align: left;
         }
         textarea {
             resize: none;
             height: 100px;
-            width: 200px;
+            width: 250px;
         }
     }
     .form-aligned .control-group {
@@ -233,10 +231,9 @@ $blue: hsl(200, 100%, 45%);
         margin-bottom: 0;
         padding-bottom: 0.5em;
         label {
-            width: 100px;
+            width: 80px;
             color: #aaa;
         }
     }
 }
 </style>
-

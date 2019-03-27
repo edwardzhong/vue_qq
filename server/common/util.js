@@ -24,7 +24,7 @@ function deepCopy(p, c) {
  * @param  {...any} args 
  */
 function stringFormat(str, ...args) {
-    args = args.flat();// Array can be Array, because flat function
+    // args = args.flat();// Array can be Array, because flat function
     return str.replace(/\$(\d+)/g, function (match, num) {
         let m = args[parseInt(num, 10) - 1];
         return m ? ('' + m) : match;
@@ -139,7 +139,6 @@ function compressPicture(img, size) {
 }
 
 module.exports = {
-    inherit,
     deepCopy,
     stringFormat,
     htmlEncode,

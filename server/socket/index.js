@@ -2,11 +2,12 @@ const auth = require('./auth.js')
 const { insertMsg, insertToUser } = require('../daos/message');
 const log = require('../common/logger')
 
-let maps = {};
-let list = [];
+let MAP = {};
+let LIST = [];
+let ROOMS = [];
 const findUid = sid => {
     let id = '';
-    for (let [k, v] of Object.entries(maps)) {
+    for (let [k, v] of Object.entries(MAP)) {
         if (v == sid) {
             id = k;
         }
@@ -14,12 +15,20 @@ const findUid = sid => {
     return id;
 };
 const deleteUser = sid => {
-    let i = list.findIndex(l => l.socketId == sid);
+    let i = LIST.findIndex(l => l.socketId == sid);
     if (i > - 1) {
-        delete maps[list[i].id];
+        delete MAP[LIST[i].id];
     }
-    return list.splice(i, 1)[0];
+    return LIST.splice(i, 1)[0];
 };
+
+const addRooms = arr => {
+    arr.forEach(a => {
+        if (!ROOMS.includes(a)) {
+            ROOMS.push(a);
+        }
+    });
+}
 
 const currTime = () => {
     const d = new Date(), date = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -38,33 +47,36 @@ module.exports = io => {
             message: 'welcome to main channel, please sign'
         });
 
-        socket.on('sign', (data, fn) => {
-            if (!data.id) {
+        socket.on('sign', ({ user, rooms }, fn) => {
+            if (!user.id) {
                 return fn({ code: 2, message: 'id not exist' });
             }
-            maps[data.id] = socket.id;
-            data.socketId = socket.id;
-            list.push(data);
+            MAP[user.id] = socket.id;
+            user.socketId = socket.id;
+            LIST.push(user);
+            addRooms(rooms);
 
-            socket.emit('userin', maps, data);
-            socket.broadcast.emit('userin', maps, data);
+            socket.join(rooms);//加入自己所在的组
+            socket.emit('userin', MAP, user);
+            socket.broadcast.emit('userin', MAP, user);
 
             fn({
                 code: 0,
                 message: 'sign success',
-                data: maps
+                data: MAP
             });
         });
 
+        //两人聊天
         socket.on('send', async (uid, msg) => {
-            const sid = maps[uid];//接收用户socket.id
+            const sid = MAP[uid];//接收用户socket.id
             const cid = findUid(socket.id);//发送用户id
 
             if (sid) { // 好友在线则发送
-                socket.to(sid).emit('reply', { id: cid, self: false }, { date: currTime(), msg: msg });
+                socket.to(sid).emit('reply', { id: cid, self: false }, { date: currTime(), msg });
             }
             // 给自己也发一份
-            socket.emit('reply', { id: uid, self: true }, { date: currTime(), msg: msg });
+            socket.emit('reply', { id: uid, self: true }, { date: currTime(), msg });
             // 保存数据库
             try {
                 const ret = await insertMsg({ send_id: cid, receive_id: uid, content: msg });
@@ -73,22 +85,40 @@ module.exports = io => {
                 log.error(err);
             }
         });
-        
-        socket.on('acceptFriend',(uid) => {
-            const sid = maps[uid];
-            if(sid){
-                socket.to(sid).emit('refresh',maps);
+
+        //群组聊天
+        socket.on('groupSend', async ({gid,user}, msg) => {
+            socket.to(gid).broadcast.emit('groupReply', { gid: gid , ...user }, { date: currTime(), msg });
+            // 给自己也发一份
+            socket.emit('groupReply', { gid: gid , ...user }, { date: currTime(), msg });
+
+            //保存数据库
+            try {
+                const ret = await insertMsg({ type:1, send_id: user.id, group_id: gid, content: msg });
+                insertToUser({ group_id: gid, send_id: user.id, message_id: ret.insertId, is_read: 1 });
+            } catch (err) {
+                log.error(err);
             }
-            socket.emit('checkStatus',maps);
+        });
+
+        socket.on('acceptFriend', (uid) => {
+            const sid = MAP[uid];
+            if (sid) {
+                socket.to(sid).emit('refresh', MAP);
+            }
+            socket.emit('checkStatus', MAP);
         });
 
         socket.on('sendApply', (uid, data) => {
-            socket.to(maps[uid]).emit('apply', { ...data, date: currTime() });
+            const sid = MAP[uid];
+            if(sid){
+                socket.to(MAP[uid]).emit('apply', { ...data, date: currTime() });
+            }
         });
 
         socket.on('disconnect', () => {
             const user = deleteUser(socket.id);
-            socket.broadcast.emit('userout', maps, user);
+            socket.broadcast.emit('userout', MAP, user);
         });
     });
 

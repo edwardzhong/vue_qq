@@ -76,6 +76,8 @@ export default {
                         that.socket.emit("sendApply", info.id, {
                             ...that.selfInfo,
                             ...form,
+                            type:0,
+                            id:res.data,
                             from_id: that.selfInfo.id
                         });
                         that.$emit("close");

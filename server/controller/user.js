@@ -1,9 +1,9 @@
 const mysql = require('mysql')
 const { stringFormat } = require('../common/util')
 const userDao = require('../daos/user')
-const { getGroup } = require('../daos/group')
 const { getFriends } = require('../daos/friend')
 const { getApply } = require('../daos/apply')
+const { getGroup,getGroupUsers,getGroupMsg } = require('../daos/group')
 const { getReads, clearRead, getUserMsg } = require('../daos/message')
 
 // exports.index = async function (ctx) {
@@ -77,6 +77,22 @@ exports.getMsg = async function (ctx) {
         code: 0,
         message: '消息列表',
         data: msgs
+    };
+}
+
+exports.getGroupInfo = async function (ctx) {
+    const { id } = ctx.query;
+    const { uid } = await ctx.verify();
+    const [users, list] = await Promise.all([getGroupUsers([id]), getGroupMsg([id])]);
+    const msgs = list.map(formatTime).map(l => {
+        l.msg = l.content;
+        l.self = l.send_id == uid;
+        return l;
+    });
+    ctx.body = {
+        code: 0,
+        message: '获取组信息成功',
+        data: { users, msgs }
     };
 }
 

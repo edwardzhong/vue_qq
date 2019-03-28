@@ -2,28 +2,38 @@
 div.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
     v-on:click.stop="$emit('setZ')" )
     header(v-drag)
-        div.avatar
+        div.avatar(v-on:click.stop="groupProfile(info)")
             img(:src="info.avatar? info.avatar: aPic.src") 
-        h2 {{info.nick}}
+        h2 {{info.name}}
         div.close(v-on:click.stop="$emit('close')") ×
-    div.body(ref="body")
-        template(v-for="(item,i) in msgs")
-            time {{item.date}}
-            div.talk(:key="i" v-if="item.self" class="right")
-                div
-                    p.nick {{selfInfo.nick}}
-                    p.word(:style="{textAlign:align(item.msg)}") {{item.msg}}
-                span.avatar
-                    img(:src="selfInfo.avatar? selfInfo.avatar: gPic.src")
-            div.talk(:key="i" v-else)
-                span.avatar
-                    img(:src="info.avatar? info.avatar: aPic.src")
-                div
-                    p.nick {{info.nick}}
-                    p.word {{item.msg}}
-    textarea(v-model="text")
-    footer
-        button(class="button button-primary" v-on:click="send")  send
+    div.body
+        div.left
+            div.msgs(ref="body")
+                template(v-for="(item,i) in msgs")
+                    time {{item.date}}
+                    div.talk(:key="i" v-if="item.id == selfInfo.id" class="right")
+                        div
+                            p.nick {{item.nick}}
+                            p.word(:style="{textAlign:align(item.msg)}") {{item.msg}}
+                        span.avatar
+                            img(:src="item.avatar? item.avatar: aPic.src")
+                    div.talk(:key="i" v-else)
+                        span.avatar
+                            img(:src="item.avatar? item.avatar: aPic.src")
+                        div
+                            p.nick {{item.nick}}
+                            p.word {{item.msg}}
+            textarea(v-model="text")
+            footer
+                button(class="button button-primary" v-on:click="send")  send
+        div.info
+            div.notice {{info.desc}}
+            div.users
+                ul
+                    li(v-for="(item,i) in info.users" :key="item.id")
+                        div.avatar(v-on:click.stop="profile(item)")
+                            img(:src="item.avatar? item.avatar: aPic.src") 
+                        p(v-on:click.stop="chatWin(item)") {{item.nick}}
 </template>
 <script>
 import { mapState, mapGetters } from "vuex";
@@ -39,6 +49,9 @@ export default {
     data() {
         return {
             text: "",
+            aPic: {
+                src: require("../assets/avatar.jpg")
+            },
             gPic: {
                 src: require("../assets/group.jpg")
             }
@@ -47,7 +60,7 @@ export default {
     computed: {
         ...mapState(["selfInfo"])
     },
-    mounted(){
+    mounted() {
         const that = this;
         document.onkeydown = function(e) {
             if (e.ctrlKey && e.keyCode == 13) {
@@ -56,15 +69,24 @@ export default {
         };
         this.$refs.body.scrollTop = this.$refs.body.scrollHeight;
     },
+    updated(){
+        this.$refs.body.scrollTop = this.$refs.body.scrollHeight;
+    },
     methods: {
+        profile(item) {
+            this.$emit("pro", item);
+        },
+        chatWin(item) {
+            if (this.selfInfo.id == item.id) return;
+            this.$emit("chat", item);
+        },
+        groupProfile(item) {
+            this.$emit("gPro", item);
+        },
         send() {
             const txt = this.text.trim();
             if (!txt) return;
-            this.socket.emit("send", this.info.id, txt);
-            setTimeout(() => {
-                this.$refs.body.scrollTop = this.$refs.body.scrollHeight;
-            }, 300);
-
+            this.socket.emit( "groupSend", { gid: this.info.id, user: this.selfInfo }, txt );
             this.text = "";
         },
         align(txt) {
@@ -83,7 +105,7 @@ $blue: hsl(200, 100%, 45%);
 }
 .msg-win {
     position: absolute;
-    width: 400px;
+    width: 540px;
     box-shadow: 0 6px 20px 0 hsla(0, 0%, 0%, 0.19),
         0 8px 17px 0 hsla(0, 0%, 0%, 0.2);
     header {
@@ -108,9 +130,9 @@ $blue: hsl(200, 100%, 45%);
         }
         h2 {
             box-sizing: border-box;
+            flex: 1;
             margin: 0;
             padding: 0 15px;
-            width: 320px;
             font-weight: normal;
             font-size: 16px;
             line-height: 2.6;
@@ -127,6 +149,53 @@ $blue: hsl(200, 100%, 45%);
         }
     }
     .body {
+        display: flex;
+        .left {
+            width: 380px;
+        }
+        .info {
+            width: 160px;
+            border-left: 1px solid #ccc;
+            background-color: #fff;
+        }
+        .notice {
+            box-sizing: border-box;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            height: 150px;
+            overflow-y: scroll;
+        }
+        .users {
+            padding: 10px;
+            overflow-y: scroll;
+            li {
+                display: flex;
+                padding-bottom: 10px;
+                &:hover {
+                    color: $blue;
+                }
+            }
+            .avatar {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                margin-right: 10px;
+                overflow: hidden;
+                cursor: pointer;
+                img {
+                    width: 100%;
+                    height: 100%;
+                }
+            }
+            p {
+                flex: 1;
+                margin: 0;
+                @include nowrap;
+                cursor: pointer;
+            }
+        }
+    }
+    .msgs {
         box-sizing: border-box;
         height: 240px;
         padding: 10px;

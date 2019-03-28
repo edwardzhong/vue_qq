@@ -35,3 +35,4 @@ npm run server
 个人签名的显示
 上线下线隐身状态的设置
 信息提示框
+group 申请的socket通道

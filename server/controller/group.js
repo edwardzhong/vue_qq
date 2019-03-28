@@ -39,7 +39,7 @@ exports.delGroup = async function (ctx) {
 
 exports.updateGroup = async function (ctx) {
     const form = ctx.request.body;
-    const id = form.id; 
+    const id = form.id;
     delete form.id;
     const token = await ctx.verify();
     const ret = await groupDao.updateGroup([form, id, token.uid]);
@@ -53,5 +53,4 @@ exports.updateGroup = async function (ctx) {
         code: 0,
         message: '更新成功'
     };
-
 }

@@ -1,5 +1,11 @@
-const token = localStorage.getItem("token");
-const selfInfo = JSON.parse(localStorage.getItem('selfInfo') || '{}');
+let token = localStorage.getItem("token");
+let selfInfo = {};
+const info = localStorage.getItem('selfInfo');
+if(info === 'undefined'){
+    localStorage.clear();
+} else {
+    selfInfo = JSON.parse(info)||{};
+}
 
 export const state = {
     modal: { visible: false },

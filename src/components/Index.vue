@@ -4,7 +4,8 @@ div.content
         header(v-drag)
             div.avatar(v-on:click="profile(selfInfo)")
                 img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src") 
-            h2 {{ selfInfo.nick }}
+            div.name {{ selfInfo.nick }}
+                p {{ selfInfo.signature}}
             i.icon-logout(v-on:click="logout")
         div.body
             div.search
@@ -25,7 +26,7 @@ div.content
                         li(v-for="item in searchs.groups" :key="item.id")
                             div.avatar(v-on:click="groupProfile(item)")
                                 img(:src="item.avatar? item.avatar: aPic.src") 
-                            p(v-on:click="groupTo(item)") {{item.name}}
+                            p(v-on:click="groupWin(item)") {{item.name}}
             div.main-panel(v-if="!isSearch")        
                 nav
                     div(v-on:click="showTab(0)" :class="{active:tabIndex==0}") 好友
@@ -45,7 +46,9 @@ div.content
                         li(v-for="item in groups" :key="item.id")
                             div.avatar(v-on:click="groupProfile(item)")
                                 img(:src="item.avatar? item.avatar:gPic.src") 
-                            p {{item.name}}
+                            div.name
+                                p(v-on:click="groupWin(item)") {{item.name}}
+                                span(v-if="item.reads && item.reads > 0") ({{item.reads}})
                             i.icon-minus(v-if="item.create_id == selfInfo.id" v-on:click="deleteGroup(item)")
                 ul.msgs(v-if="tabIndex == 2")
                     li(v-for="(item,i) in msgs" :key="item.id")
@@ -54,7 +57,7 @@ div.content
                             a(href="javascript:;" v-on:click="msgTo(item)") {{item.nick}} 
                             span(v-if="item.type == 0") 申请成为好友
                             span(v-if="item.type == 1") 申请加入群组
-                                a( v-if="item.group_name" href="javascript:;" v-on:click="msgToGroup(item)") {{item.group_name}}
+                                a( v-if="getGroupName(item.group_id)" href="javascript:;" v-on:click="msgToGroup(item)") {{getGroupName(item.group_id)}}
                                 span(v-else) &nbsp;xxxx
                         p.msg "{{item.apply_message}}"
                         div.btns
@@ -78,15 +81,19 @@ div.content
         :msgs="item.msgs"
         :socket = "item.socket"
         v-on:close="closeWin(i)"
+        v-on:chat="chatWin"
+        v-on:pro="profile"
+        v-on:gPro="groupProfile"
         v-on:setZ="setZ(i)")
 </template>
 
 <script>
 import { mapState, mapGetters } from "vuex";
 import io from "socket.io-client";
-import MsgWin from "./MsgWin.vue";
+import ChatMsg from "./ChatMsg.vue";
 import Profile from "./Profile.vue";
 import GroupProfile from "./GroupProfile.vue";
+import GroupMsg from "./GroupMsg.vue";
 import { get, post } from "../common/request";
 
 export default {
@@ -123,9 +130,10 @@ export default {
 
         // main
         // this.socket.on('open', res => { });
+        const rooms = this.groups.map(g => "" + g.id);
 
         //注册用户信息
-        this.socket.emit("sign", this.selfInfo, res => {
+        this.socket.emit("sign", { user: this.selfInfo, rooms }, res => {
             // console.log(res);
             this.$store.commit("friendStatus", res.data);
             this.socket.on("userin", (map, user) => {
@@ -152,10 +160,15 @@ export default {
             this.socket.on("apply", data => {
                 this.$store.commit("addMsg", data);
             });
+
             //接收聊天信息
             this.socket.on("reply", (user, data) => {
-                // data.date = formatTime(data.date);
                 this.sendMsg(user, data);
+            });
+
+            //接收群组聊天信息
+            this.socket.on("groupReply", (info, data) => {
+                this.sendGroupMsg(info, data);
             });
         });
 
@@ -203,6 +216,10 @@ export default {
         }
     },
     methods: {
+        getGroupName(id){
+            const sel = this.groups.find(g=>g.id == id);
+            return sel?sel.name:'';
+        },
         inputGroup() {
             this.inputvisble = true;
         },
@@ -223,7 +240,8 @@ export default {
             }
             this.$store.dispatch("addGroup", {
                 name: val,
-                create_id: that.selfInfo.id
+                create_id: that.selfInfo.id,
+                create_name: that.selfInfo.nick
             });
         },
         deleteGroup(item) {
@@ -256,8 +274,9 @@ export default {
         reject(item) {
             this.$store.dispatch("reject", item);
         },
-        acceptGroup(item) {
-            this.$store.dispatch("acceptGroup", item);
+        async acceptGroup(item) {
+            await this.$store.dispatch("acceptGroup", item);
+            this.socket.emit("acceptFriend", item.from_id);
         },
         addWin(info, com) {
             if (
@@ -279,12 +298,41 @@ export default {
             });
             this.setZ(l);
         },
+        groupWin(info) {
+            const selGroup = this.groups.find(g => g.id == info.id);
+            if (!selGroup){
+                this.groupProfile(info);
+                return;
+            }
+
+            get("/getgroupinfo", { id: info.id })
+                .then(res => {
+                    if (res.code == 0) {
+                        if(!res.data.users.length){
+                            this.$store.commit('delGroup',info);
+                            alert(`群组 ${selGroup.name} 不存在`);
+                        } else {
+                            selGroup.reads = 0;
+                            this.addWin({ ...info, users: res.data.users, msgs: res.data.msgs }, GroupMsg );
+                        }
+                    } else if (res.code == 1) {
+                        this.$store.commit("logout");
+                    }
+                })
+                .catch(err => {
+                    alert(err.message);
+                });
+        },
         chatWin(info) {
             const selfriend = this.friends.find(i => i.id == info.id);
             get("/getmsg", { id: info.id, reads: selfriend.reads })
                 .then(res => {
-                    selfriend.reads = 0;
-                    this.addWin({ ...info, msgs: res.data }, MsgWin);
+                    if (res.code == 0) {
+                        selfriend.reads = 0;
+                        this.addWin({ ...info, msgs: res.data }, ChatMsg);
+                    } else if (res.code == 1) {
+                        this.$store.commit("logout");
+                    }
                 })
                 .catch(err => {
                     alert(err.message);
@@ -327,12 +375,22 @@ export default {
         },
         sendMsg(user, data) {
             let selWin = this.wins.find(
-                w => w.component == MsgWin && w.info.id == user.id
+                w => w.component == ChatMsg && w.info.id == user.id
             );
             if (selWin) {
                 selWin.msgs.push({ ...data, ...user });
             } else {
                 this.$store.commit("addNoReads", user);
+            }
+        },
+        sendGroupMsg(info, data) {
+            let selWin = this.wins.find(
+                w => w.component == GroupMsg && w.info.id == info.gid
+            );
+            if (selWin) {
+                selWin.msgs.push({ ...data, ...info });
+            } else {
+                this.$store.commit("addGroupNoReads", info);
             }
         },
         closeWin(i) {
@@ -400,7 +458,6 @@ $blue: hsl(200, 100%, 45%);
         align-items: center;
         background-color: $blue;
         color: #fff;
-        line-height: 3;
         .avatar {
             width: 30px;
             height: 30px;
@@ -417,10 +474,17 @@ $blue: hsl(200, 100%, 45%);
                 height: 100%;
             }
         }
-        h2 {
+        .name {
             width: 170px;
-            font-weight: normal;
-            font-size: 16px;
+            font-size: 18px;
+            padding: 10px 0;
+            @include nowrap;
+            p {
+                margin: 0;
+                padding: 5px 0;
+                font-size: 12px;
+                @include nowrap;
+            }
         }
         i {
             padding-right: 15px;
@@ -576,6 +640,7 @@ $blue: hsl(200, 100%, 45%);
                 }
             }
             .icon-minus {
+                display: none;
                 cursor: pointer;
             }
             input {
@@ -592,8 +657,12 @@ $blue: hsl(200, 100%, 45%);
                 li {
                     margin-top: 10px;
                     opacity: 1;
+                    &:hover .icon-minus {
+                        display: block;
+                    }
                 }
-                p {
+                .name{
+                    display: flex;
                     width: 150px;
                 }
             }

@@ -59,6 +59,14 @@ export default {
                 }
                 return g;
             });
+        },
+        addGroupNoReads(state, payload) {
+            let i = state.groups.find(i => i.id == payload.gid);
+            if (i) {
+                i.reads = i.reads || 0;
+                i.reads++;
+            }
+            state.groups = [...state.groups];
         }
     }
 }

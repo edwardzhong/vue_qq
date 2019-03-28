@@ -2,7 +2,7 @@
 div.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
     v-on:click.stop="$emit('setZ')" )
     header(v-drag)
-        div.avatar
+        div.avatar(v-on:click.stop="profile(info)")
             img(:src="info.avatar? info.avatar: aPic.src") 
         h2 {{info.nick}}
         div.close(v-on:click.stop="$emit('close')") ×
@@ -56,15 +56,17 @@ export default {
         };
         this.$refs.body.scrollTop = this.$refs.body.scrollHeight;
     },
+    updated(){
+        this.$refs.body.scrollTop = this.$refs.body.scrollHeight;
+    },
     methods: {
+        profile(info){
+            this.$emit('pro',info);
+        },
         send() {
             const txt = this.text.trim();
             if (!txt) return;
             this.socket.emit("send", this.info.id, txt);
-            setTimeout(() => {
-                this.$refs.body.scrollTop = this.$refs.body.scrollHeight;
-            }, 300);
-
             this.text = "";
         },
         align(txt) {
@@ -107,10 +109,10 @@ $blue: hsl(200, 100%, 45%);
             }
         }
         h2 {
+            flex: 1;
             box-sizing: border-box;
             margin: 0;
             padding: 0 15px;
-            width: 320px;
             font-weight: normal;
             font-size: 16px;
             line-height: 2.6;
@@ -143,6 +145,7 @@ $blue: hsl(200, 100%, 45%);
             display: flex;
             flex: row wrap;
             align-items: top;
+            padding: 5px 0;
             .avatar {
                 display: inline-block;
                 width: 30px;

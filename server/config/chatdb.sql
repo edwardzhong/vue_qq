@@ -75,11 +75,12 @@ CREATE TABLE `user_group` (
 
 drop table if exists `user_message`;
 CREATE TABLE `user_message` (
-  `user_id` char(36) NOT NULL COMMENT '接收用户id',
+  `user_id` char(36) DEFAULT NULL COMMENT '接收用户id',
+  `group_id` int(11) DEFAULT NULL COMMENT '接收群组id',
   `send_id` char(36) NOT NULL COMMENT '发送用户id',
   `message_id` int(11) NOT NULL COMMENT '消息id',
   `is_read` tinyint(1) DEFAULT 0 COMMENT '是否读过(0 没有 1 读过)',
-  PRIMARY KEY (`send_id`,`user_id`,`message_id`)
+  PRIMARY KEY (`send_id`,`message_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户消息连接表';
 
 /* 触发器 和 存储过程 */

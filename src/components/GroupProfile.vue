@@ -83,11 +83,13 @@ export default {
             if (val) form.apply_message = val;
             post("/apply", form) .then(res => {
                 if (res.code == 0) {
-                    // that.socket.emit("sendApply", info.id, {
-                    //     ...that.selfInfo,
-                    //     ...form,
-                    //     from_id: that.selfInfo.id
-                    // });
+                    that.socket.emit("sendApply", info.create_id, {
+                        ...that.selfInfo,
+                        ...form,
+                        type:1,
+                        id:res.data,
+                        from_id: that.selfInfo.id
+                    });
                     that.$emit("close");
                 } else {
                     alert(err.message);

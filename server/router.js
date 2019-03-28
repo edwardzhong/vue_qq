@@ -1,8 +1,8 @@
 const { uploadFile } = require('./controller/file')
 const { login, register } = require('./controller/sign')
-const { apply, accept, acceptGroup, reject } = require('./controller/apply')
-const { getInfo, updateInfo, delFriend, getMsg, search } = require('./controller/user')
 const { addGroup, delGroup, updateGroup } = require('./controller/group')
+const { apply, accept, acceptGroup, reject } = require('./controller/apply')
+const { getInfo, updateInfo, delFriend, getMsg,getGroupInfo, search } = require('./controller/user')
 
 module.exports = function (router) {
     router
@@ -21,4 +21,5 @@ module.exports = function (router) {
         .post('/addgroup', addGroup)
         .post('/delgroup', delGroup)
         .post('/updategroup', updateGroup)
+        .get('/getgroupinfo', getGroupInfo)
 };

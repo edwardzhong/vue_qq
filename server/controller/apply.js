@@ -14,7 +14,8 @@ exports.apply = async function (ctx) {
     }
     ctx.body = {
         code: 0,
-        message: '申请成功'
+        message: '申请成功',
+        data:ret.insertId
     };
 }
 

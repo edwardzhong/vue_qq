@@ -49,11 +49,11 @@ app.use(favicon(path.join(baseDir, 'public/favicon.ico')));
 
 //cors
 app.use(cors({
-    origin: 'http://localhost:4001',// * 仍然不能访问，要写明具体域名才行
-    credentials: true,//是否将request的凭证暴露出来
+    origin: 'http://localhost:' + config.clentPort,// * 仍然不能访问header,要写明具体域名才行
+    credentials: true,//将凭证暴露出来, 前端才能获取cookie
     allowMethods: ['GET', 'POST', 'DELETE'],
-    exposeHeaders: ['Authorization'],// expose出去，axios才能获取该字段
-    allowHeaders: ['Content-Type', 'Authorization', 'Accept']
+    exposeHeaders: ['Authorization'],// 将header字段expose出去，前端才能获取该header字段
+    allowHeaders: ['Content-Type', 'Authorization', 'Accept']// 允许添加到header的字段
 }));
 
 //json-web-token
@@ -64,7 +64,7 @@ app.use(jwt({
 
 // exclude login verify url
 app.use(verify({
-    exclude:[
+    exclude: [
         '/login',
         '/register',
         '/search'
@@ -90,7 +90,7 @@ app.use(async (ctx, next) => {
     ctx.body = { code: 404, message: '404! not found !' };
 });
 
-// koa already had middleware to deal with the error, just rigister the error event
+// koa already had event to deal with the error, just rigister it
 app.on('error', (err, ctx) => {
     log.error(err);//log all errors
     ctx.status = 500;

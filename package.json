@@ -7,7 +7,9 @@
     "dist": "webpack --config webpack.prod.js",
     "build": "webpack --config webpack.dev.js",
     "watch": "webpack-dev-server --open --config webpack.dev.js",
-    "server": "export NODE_ENV=development && node --inspect server/app"
+    "devserver": "export NODE_ENV=development && node --inspect server/app",
+    "server": "export NODE_ENV=production && node server/app",
+    "client": "export NODE_ENV=production && node client"
   },
   "keywords": [
     "vue",

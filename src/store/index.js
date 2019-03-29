@@ -3,7 +3,6 @@ import Vuex from 'vuex'
 import { state, mutations } from './mutations'
 import * as getters from './getters'
 import * as actions from './actions'
-import list from './modules/list'
 import friend from './modules/friend'
 import search from './modules/search'
 import msg from './modules/msg'
@@ -20,7 +19,6 @@ export default new Vuex.Store({
 		search,
 		friend,
 		group,
-		msg,
-		list
+		msg
 	}
 })

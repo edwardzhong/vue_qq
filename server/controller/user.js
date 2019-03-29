@@ -36,7 +36,14 @@ const mergeReads = (list, reads) => {
 
 exports.getInfo = async function (ctx) {
     const token = await ctx.verify();
-    const [users, friends, groups, applys, reads] = await Promise.all([userDao.query({ id: token.uid }), getFriends([token.uid]), getGroup([token.uid]), getApply([token.uid]), getReads([token.uid])]);
+    const [users, friends, groups, applys, reads] = await Promise.all([
+        userDao.getUser({ id: token.uid }), 
+        getFriends([token.uid]), 
+        getGroup([token.uid]), 
+        getApply([token.uid]), 
+        getReads([token.uid])
+    ]);
+
     const msgs = applys.map(formatTime);
     ctx.body = {
         code: 0,

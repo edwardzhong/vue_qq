@@ -21,7 +21,7 @@ div.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}"
                 div
                     p.nick {{info.nick}}
                     p.word {{item.msg}}
-    textarea(v-model="text")
+    textarea(v-model="text" maxlength="200")
     footer
         button(class="button button-primary" v-on:click="send")  send
 </template>

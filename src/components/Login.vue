@@ -26,15 +26,15 @@ export default {
         submit() {
             let that = this;
             if (!this.email) {
-                alert("email不能为空");
+                this.$store.commit('showDialog',{txt:'email不能为空'})
                 return;
             }
             if (!/^[\w\d]+@[\d\d]+\.com$/.test(this.email)) {
-                alert("email格式不正确");
+                this.$store.commit('showDialog',{txt:'email格式不正确'})
                 return;
             }
             if (!this.password) {
-                alert("密码不能为空");
+                this.$store.commit('showDialog',{txt:'密码不能为空'})
                 return;
             }
 
@@ -45,11 +45,11 @@ export default {
                         that.$store.commit("setSelfInfo", res.data);
                         that.$router.replace("/");
                     } else {
-                        alert(res.message);
+                        this.$store.commit('showDialog',{txt:res.message})
                     }
                 })
                 .catch(err => {
-                    alert(err.message);
+                    this.$store.commit('showDialog',{txt:err.message})
                 });
         }
     }

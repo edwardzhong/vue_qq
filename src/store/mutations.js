@@ -1,17 +1,18 @@
 let token = localStorage.getItem("token");
 let selfInfo = {};
 const info = localStorage.getItem('selfInfo');
-if(info === 'undefined'){
+if (!info || info === 'undefined') {
     localStorage.clear();
 } else {
-    selfInfo = JSON.parse(info)||{};
+    selfInfo = JSON.parse(info) || {};
 }
 
 export const state = {
     modal: { visible: false },
     loginInfo: { token },
     selfInfo: selfInfo,
-    tip: { name: 'nick', txt: 'content', show: false }
+    tip: { name: 'nick', txt: 'content', show: false },
+    dialog: { txt: 'content', cancal: false, callback: () => { }, show: false }
 }
 
 export const mutations = {
@@ -26,6 +27,15 @@ export const mutations = {
     },
     closeTip(state) {
         state.tip.show = false;
+    },
+    showDialog(state, payload) {
+        state.modal.visible = true;
+        state.dialog = Object.assign({}, state.dialog, payload);
+        state.dialog.show = true;
+    },
+    closeDialog(state) {
+        state.modal.visible = false;
+        state.dialog.show = false;
     },
     setLoginInfo(state) {
         state.loginInfo = { token: localStorage.getItem("token") };

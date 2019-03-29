@@ -15,8 +15,10 @@ export default {
                 } else if (res.code == 1) {
                     commit('logout');
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
+            }).catch(err=>{
+                commit('showDialog',{txt:err.message})
             });
         },
         delGroup({ commit }, form) {
@@ -26,8 +28,10 @@ export default {
                 } else if (res.code == 1) {
                     commit('logout');
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
+            }).catch(err=>{
+                commit('showDialog',{txt:err.message})
             });
         },
         updateGroup({ commit }, form) {
@@ -37,8 +41,10 @@ export default {
                 } else if (res.code == 1) {
                     commit('logout');
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
+            }).catch(err=>{
+                commit('showDialog',{txt:err.message})
             });
         }
     },

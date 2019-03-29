@@ -1,6 +1,10 @@
 const pool = require("./dbPool").getPool();
 const log = require('../common/logger');
 
+/**
+ * export named query function
+ * @param {plain Object} opts 
+ */
 const exportDao = opts => Object.keys(opts).reduce((next, key) => {
     next[key] = (...args) => new Promise((resolve, reject) => {
         if (opts[key]) args.unshift(opts[key]);
@@ -15,6 +19,21 @@ const exportDao = opts => Object.keys(opts).reduce((next, key) => {
 }, {});
 
 /**
+ * just promiseful query
+ * @param  {...any} args 
+ */
+const query = (...args) => {
+    return new Promise((resolve, reject) => {
+        log.info('====== execute sql ======')
+        log.info(args);
+        pool.query(...args, (err, result, fields) => {// fields is useless
+            if (err) reject(err)
+            else resolve(result);
+        });
+    });
+}
+
+/**
  * sql transaction
  * @param  {Array} list 
  * const rets = await transaction([
@@ -25,7 +44,7 @@ const exportDao = opts => Object.keys(opts).reduce((next, key) => {
  */
 const transaction = list => {
     return new Promise((resolve, reject) => {
-        if (!Array.isArray(list) || !list.length) return reject('it needs a Array with sql string')
+        if (!Array.isArray(list) || !list.length) return reject('it needs a Array with sql')
         pool.getConnection((err, connection) => {
             if (err) return reject(err);
             connection.beginTransaction(err => {
@@ -66,5 +85,6 @@ const transaction = list => {
 
 module.exports = {
     exportDao,
+    query,
     transaction
 };

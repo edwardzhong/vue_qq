@@ -20,15 +20,15 @@
                     p {{info.email}}
                 div.control-group
                     label 昵称
-                    input(type="text" :value ="info.nick" v-if="infoType == 0" ref="nick")
+                    input(type="text" maxlength="20" :value ="info.nick" v-if="infoType == 0" ref="nick")
                     p(v-if="infoType!=0") {{info.nick}}
                 div.control-group
                     label 个人签名
-                    textarea(v-if="infoType == 0" ref="signature") {{info.signature}}
+                    textarea(v-if="infoType == 0" maxlength="50" ref="signature") {{info.signature}}
                     p(v-if="infoType!=0") {{info.signature}}
                 div.control-group(v-if="infoType == 2")
                     label 验证信息
-                    input(type="text" ref="verify")
+                    input(type="text" maxlength="20" ref="verify")
             button(class="button" v-if="infoType == 0" v-on:click="save") save
             button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 加为好友
 </template>
@@ -82,11 +82,11 @@ export default {
                         });
                         that.$emit("close");
                     } else {
-                        alert(err.message);
+                        this.$store.commit('showDialog',{txt:res.message})
                     }
                 })
                 .catch(err => {
-                    alert(err.message);
+                    this.$store.commit('showDialog',{txt:err.message})
                 });
         },
         async save() {
@@ -106,7 +106,7 @@ export default {
             const file = e.target.files[0];
             if (!file) return false;
             if (file.type.indexOf("image") === -1) {
-                alert("请上传图片！");
+                this.$store.commit('showDialog',{txt:'请上传图片！'})
                 return false;
             }
 
@@ -116,11 +116,11 @@ export default {
             const name = fileName.substr(0, fileName.lastIndexOf("."));
             const fileSize = Math.floor(file.size / 1024);
             if (fileSize > 2048) {
-                alert("上传大小不能超过2M.");
+                this.$store.commit('showDialog',{txt:'上传大小不能超过2M'})
                 return false;
             }
             if (!window.FileReader) {
-                alert("浏览器不支持上传");
+                this.$store.commit('showDialog',{txt:'浏览器不支持上传'})
                 return false;
             }
 
@@ -136,11 +136,11 @@ export default {
                                 that.$refs.img.src = res.data;
                                 that.$refs.img.dataset.src = res.data;
                             } else {
-                                alert(res.message);
+                                this.$store.commit('showDialog',{txt:res.message})
                             }
                         })
                         .catch(err => {
-                            alert(err.message);
+                            this.$store.commit('showDialog',{txt:err.message})
                         });
                 };
             };

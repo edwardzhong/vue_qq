@@ -2,6 +2,7 @@
 	div#app
 		Modal
 		Tip(:class="{ active:tip.show}" :name="tip.name" :txt="tip.txt")
+		Dialog
 		router-view
 </template>
 <script>

@@ -1,6 +1,6 @@
-const userDao = require('../daos/user')
 const crypto = require('crypto')
 const uuid = require('uuid/v1')
+const userDao = require('../daos/user')
 
 const makeSalt = () => Math.round((new Date().valueOf() * Math.random())) + '';//generate salt
 const encryptPass = (pass, salt) => crypto.createHash('md5').update(pass + salt).digest('hex');// generate md5
@@ -17,7 +17,7 @@ const encryptPass = (pass, salt) => crypto.createHash('md5').update(pass + salt)
  */
 exports.login = async function (ctx, next) {
 	const { email, password } = ctx.request.body;
-	const users = await userDao.query({ email });
+	const users = await userDao.getUser({ email });
 	if (!users.length) {
 		return ctx.body = {
 			code: 2,

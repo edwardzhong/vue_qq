@@ -18,10 +18,10 @@ export default {
                 } else if(res.code == 1){
                     commit('logout');
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
             }).catch(err => {
-                alert(err.message);
+                commit('showDialog',{txt:err.message})
             });
         }
     },

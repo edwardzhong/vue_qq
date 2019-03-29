@@ -18,15 +18,15 @@
                         a(href="javascript:;") {{info.create_name}}
                 div.control-group
                     label 名称
-                    input(type="text" :value ="info.name" v-if="infoType == 0" ref="name")
+                    input(type="text" :value ="info.name" maxlength="20" v-if="infoType == 0" ref="name")
                     p(v-if="infoType!=0") {{info.name}}
                 div.control-group
                     label 介绍
-                    textarea(v-if="infoType == 0" ref="desc") {{info.desc}}
+                    textarea(v-if="infoType == 0" maxlength="50" ref="desc") {{info.desc}}
                     p(v-if="infoType!=0") {{info.desc}}
                 div.control-group(v-if="infoType == 2")
                     label 验证信息
-                    input(type="text" ref="verify")
+                    input(type="text" maxlength="20" ref="verify")
             button(class="button" v-if="infoType == 0" v-on:click="save(info)") save
             button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 申请加入
 </template>
@@ -79,24 +79,28 @@ export default {
         apply(info) {
             const that = this;
             const val = this.$refs.verify.value.trim();
-            let form = { to_id: info.create_id, type: 1, group_id: info.id };
+            let form = {
+                to_id: info.create_id,
+                type: 1,
+                group_id: info.id
+            };
             if (val) form.apply_message = val;
-            post("/apply", form) .then(res => {
+            post("/apply", form).then(res => {
                 if (res.code == 0) {
                     that.socket.emit("sendApply", info.create_id, {
                         ...that.selfInfo,
                         ...form,
-                        type:1,
-                        id:res.data,
-                        from_id: that.selfInfo.id
+                        id: res.data,
+                        from_id: that.selfInfo.id,
+                        group_name: info.name
                     });
                     that.$emit("close");
                 } else {
-                    alert(err.message);
+                    this.$store.commit('showDialog',{txt:res.message})
                 }
             })
             .catch(err => {
-                alert(err.message);
+                this.$store.commit('showDialog',{txt:err.message})
             });
         },
         uploadFile(e) {
@@ -104,7 +108,7 @@ export default {
             const file = e.target.files[0];
             if (!file) return false;
             if (file.type.indexOf("image") === -1) {
-                alert("请上传图片！");
+                this.$store.commit('showDialog',{txt:'请上传图片'})
                 return false;
             }
 
@@ -114,11 +118,11 @@ export default {
             const name = fileName.substr(0, fileName.lastIndexOf("."));
             const fileSize = Math.floor(file.size / 1024);
             if (fileSize > 2048) {
-                alert("上传大小不能超过2M.");
+                this.$store.commit('showDialog',{txt:'上传大小不能超过2M'})
                 return false;
             }
             if (!window.FileReader) {
-                alert("浏览器不支持上传");
+                this.$store.commit('showDialog',{txt:'浏览器不支持上传'})
                 return false;
             }
 
@@ -134,11 +138,11 @@ export default {
                                 that.$refs.img.src = res.data;
                                 that.$refs.img.dataset.src = res.data;
                             } else {
-                                alert(res.message);
+                                this.$store.commit('showDialog',{txt:res.message})
                             }
                         })
                         .catch(err => {
-                            alert(err.message);
+                            this.$store.commit('showDialog',{txt:err.message})
                         });
                 };
             };

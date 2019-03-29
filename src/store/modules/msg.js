@@ -16,10 +16,10 @@ export default {
                     commit("setMsgState", { id: form.id, status: 1 });
                     commit("addFriend", Object.assign({}, form, { id: form.from_id }));
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
-            }).catch(err => {
-                alert(err.message);
+            }).catch(err=>{
+                commit('showDialog',{txt:err.message})
             });
         },
         acceptGroup({ commit }, form) {
@@ -27,10 +27,10 @@ export default {
                 if (res.code == 0) {
                     commit("setMsgState", { id: form.id, status: 1 });
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
-            }).catch(err => {
-                alert(err.message);
+            }).catch(err=>{
+                commit('showDialog',{txt:err.message})
             });
         },
         reject({ commit }, form) {
@@ -39,10 +39,10 @@ export default {
                     form.status = 2;
                     commit("setMsgState", form);
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
-            }).catch(err => {
-                alert(err.message);
+            }).catch(err=>{
+                commit('showDialog',{txt:err.message})
             });
         }
     },

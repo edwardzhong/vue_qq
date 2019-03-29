@@ -10,7 +10,7 @@ div.content
         div.body
             div.search
                 div
-                    input(type="search" placeholder="search" ref="ser" v-on:keyup.enter="search($event)")
+                    input(type="search" placeholder="search" ref="ser" maxlength="20" v-on:keyup.enter="search($event)")
                     span(v-on:click="hideSearch") 取消
                 label(v-on:click="showSearch" v-if="!isSearch")
                     i.icon-search
@@ -41,7 +41,7 @@ div.content
                         span(v-if="item.reads && item.reads > 0") ({{item.reads}})
                 div.groups(v-if="tabIndex == 1")
                     i.icon-plus(v-on:click="inputGroup")
-                    input(type="text" v-if="inputvisble" v-on:keyup.enter="appendGroup" v-on:mouseleave="closeInputGroup")
+                    input(type="text" v-if="inputvisble" maxlength="20" v-on:keyup.enter="appendGroup" v-on:mouseleave="closeInputGroup")
                     ul
                         li(v-for="item in groups" :key="item.id")
                             div.avatar(v-on:click="groupProfile(item)")
@@ -57,7 +57,7 @@ div.content
                             a(href="javascript:;" v-on:click="msgTo(item)") {{item.nick}} 
                             span(v-if="item.type == 0") 申请成为好友
                             span(v-if="item.type == 1") 申请加入群组
-                                a( v-if="getGroupName(item.group_id)" href="javascript:;" v-on:click="msgToGroup(item)") {{getGroupName(item.group_id)}}
+                                a( v-if="item.group_name" href="javascript:;" v-on:click="msgToGroup(item)") {{item.group_name}}
                                 span(v-else) &nbsp;xxxx
                         p.msg "{{item.apply_message}}"
                         div.btns
@@ -148,7 +148,7 @@ export default {
                 this.$store.commit("friendStatus", map);
             });
             this.socket.on("auth", data => {
-                alert(data.message);
+                this.$store.commit('showDialog',{txt:data.message})
                 this.$store.commit("logout");
             });
             this.socket.on("refresh", async map => {
@@ -156,7 +156,7 @@ export default {
                 this.$store.commit("friendStatus", map);
             });
 
-            //接收好友申请
+            //接收申请好友和组群
             this.socket.on("apply", data => {
                 this.$store.commit("addMsg", data);
             });
@@ -216,10 +216,6 @@ export default {
         }
     },
     methods: {
-        getGroupName(id){
-            const sel = this.groups.find(g=>g.id == id);
-            return sel?sel.name:'';
-        },
         inputGroup() {
             this.inputvisble = true;
         },
@@ -231,11 +227,8 @@ export default {
             const that = this;
             const val = e.target.value.trim();
             if (!val) return;
-            if (
-                this.groups.filter(g => g.create_id == this.selfInfo.id)
-                    .length >= 3
-            ) {
-                alert("最多只能建3个组");
+            if ( this.groups.filter(g => g.create_id == this.selfInfo.id).length >= 3) {
+                this.$store.commit('showDialog',{txt:'最多只能建3个组'});
                 return;
             }
             this.$store.dispatch("addGroup", {
@@ -310,7 +303,7 @@ export default {
                     if (res.code == 0) {
                         if(!res.data.users.length){
                             this.$store.commit('delGroup',info);
-                            alert(`群组 ${selGroup.name} 不存在`);
+                            this.$store.commit('showDialog',{txt:`群组 ${selGroup.name} 不存在`});
                         } else {
                             selGroup.reads = 0;
                             this.addWin({ ...info, users: res.data.users, msgs: res.data.msgs }, GroupMsg );
@@ -320,7 +313,7 @@ export default {
                     }
                 })
                 .catch(err => {
-                    alert(err.message);
+                    this.$store.commit('showDialog',{txt:err.message})
                 });
         },
         chatWin(info) {
@@ -335,7 +328,7 @@ export default {
                     }
                 })
                 .catch(err => {
-                    alert(err.message);
+                    this.$store.commit('showDialog',{txt:err.message})
                 });
         },
         profile(info) {

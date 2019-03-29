@@ -9,8 +9,11 @@ export const getInfo = ({ commit }) => {
             commit("setMsgs", res.data.msgs);
         } else if (res.code == 1) {
             commit("logout");
+        } else {
+            commit('showDialog',{txt:res.message})
         }
-    }).catch(err => {
+    }).catch(err=>{
+        commit('showDialog',{txt:err.message})
     });
 }
 
@@ -21,9 +24,9 @@ export const updateSelf=({commit},form)=>{
         } else if (res.code == 1) {
             commit("logout");
         } else {
-            alert(res.message);
+            commit('showDialog',{txt:res.message})
         }
-    }).catch(err => {
-        alert(err.message);
+    }).catch(err=>{
+        commit('showDialog',{txt:err.message})
     });
 }

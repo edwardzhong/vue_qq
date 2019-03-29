@@ -1,16 +1,27 @@
 <template lang="pug">
-div.dialog(:class="{active:visible}")
+div.dialog(:class="{active:dialog.show}")
     div.body
-        slot content
+        p {{dialog.txt}}
     div.foot
-        a(href="javascript:;" v-on:click="$emit('close')") cancel
-        a(href="javascript:;" v-on:click="$emit('confirm')") yes
+        a(href="javascript:;" v-if="dialog.cancel" v-on:click="close") 取消
+        a(href="javascript:;" v-on:click="confirm") 确定
 </template>
 <script>
+import { mapState, mapGetters } from "vuex";
+
 export default {
     name:'dialog',
-    props: {
-        visible: Boolean
+    computed: {
+        ...mapState(["dialog"])
+    },
+    methods:{
+        close(){
+            this.$store.commit('closeDialog');
+        },
+        confirm(){
+            this.dialog.callback();
+            this.$store.commit('closeDialog');
+        }
     }
 };
 </script>
@@ -23,7 +34,6 @@ export default {
     transform: translate(-50%, -50%);
     width: 300px;
     z-index: 100;
-    border-radius: 4px;
     box-shadow: 0 0 2px 2px hsla(0, 100%, 0%, 0.1);
     background-color: #fff;
     transition: all .3s ease-in-out;

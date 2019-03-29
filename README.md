@@ -31,8 +31,6 @@ npm run dist
 npm run server
 ```
 
-限制输入字符的长度
-个人签名的显示
+<!-- 限制输入字符的长度 -->
 上线下线隐身状态的设置
 信息提示框
-group 申请的socket通道

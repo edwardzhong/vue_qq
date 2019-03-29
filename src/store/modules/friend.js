@@ -8,23 +8,25 @@ export default {
         friends: state => state.friends
     },
     actions: {
-        removeFriend({ commit }, form){
+        removeFriend({ commit }, form) {
             return post('/delfriend', { friend_id: form.id }).then(res => {
                 if (res.code == 0) {
                     commit('removeFriend', form);
                 } else if (res.code == 1) {
                     commit('logout');
                 } else {
-                    alert(res.message);
+                    commit('showDialog',{txt:res.message})
                 }
+            }).catch(err => {
+                commit('showDialog',{txt:err.message})
             });
         }
     },
     mutations: {
-        setFriends(state, payload){
+        setFriends(state, payload) {
             state.friends = payload;
         },
-        addFriend(state, payload){
+        addFriend(state, payload) {
             if (state.friends.find(i => i.id == payload.id)) return;
             state.friends.push(payload);
         },

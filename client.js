@@ -4,7 +4,7 @@ const static = require('koa-static')
 const compress = require('koa-compress')
 const router = require('koa-router')()
 const favicon = require('koa-favicon')
-const { clinetPort } = require('./server/config/app')
+const { clientPort } = require('./server/config/app')
 const tpl = require('./server/middleware/tpl')
 const path = require('path')
 
@@ -56,6 +56,6 @@ app.on('error', (err, ctx) => {
 });
 
 if (!module.parent) {
-    app.listen(clinetPort);
-    console.log('app server running at: http://localhost:%d', clinetPort);
+    app.listen(clientPort);
+    console.log('app server running at: http://localhost:%d', clientPort);
 }

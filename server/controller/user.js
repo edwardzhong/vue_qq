@@ -33,7 +33,6 @@ const mergeReads = (list, reads) => {
     });
 };
 
-
 exports.getInfo = async function (ctx) {
     const token = await ctx.verify();
     const [users, friends, groups, applys, reads] = await Promise.all([

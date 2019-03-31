@@ -49,7 +49,7 @@ app.use(favicon(path.join(baseDir, 'public/favicon.ico')));
 
 //cors
 app.use(cors({
-    origin: 'http://localhost:' + config.clentPort,// * 仍然不能访问header,要写明具体域名才行
+    origin: 'http://localhost:' + config.clientPort,// * 仍然不能访问header,要写明具体域名才行
     credentials: true,//将凭证暴露出来, 前端才能获取cookie
     allowMethods: ['GET', 'POST', 'DELETE'],
     exposeHeaders: ['Authorization'],// 将header字段expose出去，前端才能获取该header字段

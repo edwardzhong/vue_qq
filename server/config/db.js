@@ -9,6 +9,6 @@ module.exports={
 	password: "jianfeng",
 	database: "chatdb",
 	charset : 'utf8mb4',//utf8mb4才能保存emoji
-	// multipleStatements: true,// 可同时查询多条语句, 但不能参数化传值
+	multipleStatements: true,// 可同时查询多条语句, 但不能参数化传值
 	connectionLimit: 100
 };

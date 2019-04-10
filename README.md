@@ -1,5 +1,4 @@
-# hello vue
-this is vue web app template
+## vue qq
 * vue
 * vuex
 * vue-router
@@ -7,16 +6,18 @@ this is vue web app template
 * pug
 * scss
 * koa2
+* mysql
+* json web token
 * socket.io
 * axios
 
 
-## Project setup
+### Project setup
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Compiles and hot-reloads for front development
 ```
 npm run watch
 ```
@@ -26,10 +27,12 @@ npm run watch
 npm run dist
 ```
 
+### run client server
+```
+npm run client
+```
+
 ### run node server
 ```
 npm run server
 ```
-
-<!-- 限制输入字符的长度 -->
-<!-- 上线下线隐身状态的设置 -->

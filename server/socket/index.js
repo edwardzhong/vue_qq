@@ -43,7 +43,7 @@ module.exports = io => {
         socket.emit('open', {
             code: 0,
             handshake: socket.handshake,
-            namespace: '/chat',
+            namespace: '/',
             message: 'welcome to main channel, please sign'
         });
 

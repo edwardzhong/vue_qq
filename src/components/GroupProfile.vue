@@ -1,30 +1,30 @@
 <template lang="pug">
-    div.profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
+    .profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
         v-on:click.stop="$emit('setZ')")
         header(v-drag)
             h2 {{info.name}}
             div(v-on:click.stop="$emit('close')") ×
-        div.body
-            div.avatar
+        .body
+            .avatar
                 img(:src="info.avatar? info.avatar: gPic.src" ref="img")
                 input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
-            div(class="form form-aligned")
-                div.control-group
+            .form.form-aligned
+                .control-group
                     label 类型
                     p 群组
-                div.control-group
+                .control-group
                     label 群主
                     p
                         a(href="javascript:;") {{info.create_name}}
-                div.control-group
+                .control-group
                     label 名称
                     input(type="text" :value ="info.name" maxlength="20" v-if="infoType == 0" ref="name")
                     p(v-if="infoType!=0") {{info.name}}
-                div.control-group
+                .control-group
                     label 介绍
                     textarea(v-if="infoType == 0" maxlength="50" ref="desc") {{info.desc}}
                     p(v-if="infoType!=0") {{info.desc}}
-                div.control-group(v-if="infoType == 2")
+                .control-group(v-if="infoType == 2")
                     label 验证信息
                     input(type="text" maxlength="20" ref="verify")
             button(class="button" v-if="infoType == 0" v-on:click="save(info)") save

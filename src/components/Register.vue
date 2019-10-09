@@ -2,14 +2,14 @@
     form(action='/register' method='post' class='form form-aligned' name="regForm" v-on:submit.prevent="submit")
         fieldset
             legend sign up
-            div.control-group
+            .control-group
                 input(type='email' name='email' placeholder='email' v-model="email")
-            div.control-group
+            .control-group
                 input(type='password' name='password' placeholder='password' maxlength='12' v-model="password")
-            div.control-group
+            .control-group
                 input#pass2(type='password' placeholder='confirm password'  maxlength='12' v-model="pass2")
             button(type='submit' class='button button-primary') register
-        div.links
+        .links
             router-link(to="/") &#8592 home
             router-link(to="/sign/log") to login &#8594
 </template>

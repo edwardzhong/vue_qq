@@ -1,33 +1,33 @@
 <template lang="pug">
-div.content
-    div.bar
+.content
+    .bar
         header(v-drag)
-            div.avatar(v-on:click="profile(selfInfo)")
+            .avatar(v-on:click="profile(selfInfo)")
                 img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src") 
-            div.name {{ selfInfo.nick }}
+            .name {{ selfInfo.nick }}
                 p {{ selfInfo.signature}}
             i.icon-logout(v-on:click="logout")
-        div.body
-            div.search
+        .body
+            .search
                 div
                     input(type="search" placeholder="search" ref="ser" maxlength="20" v-on:keyup.enter="search($event)")
                     span(v-on:click="hideSearch") 取消
                 label(v-on:click="showSearch" v-if="!isSearch")
                     i.icon-search
                     span search
-            div.search-panel(v-if="isSearch")
-                div.searchs
+            .search-panel(v-if="isSearch")
+                .searchs
                     ul
                         li(v-for="item in searchs.users" :key="item.id")
-                            div.avatar(v-on:click="profile(item)")
+                            .avatar(v-on:click="profile(item)")
                                 img(:src="item.avatar? item.avatar: aPic.src") 
                             p(v-on:click="userTo(item)") {{item.name}}
                     ul
                         li(v-for="item in searchs.groups" :key="item.id")
-                            div.avatar(v-on:click="groupProfile(item)")
+                            .avatar(v-on:click="groupProfile(item)")
                                 img(:src="item.avatar? item.avatar: aPic.src") 
                             p(v-on:click="groupWin(item)") {{item.name}}
-            div.main-panel(v-if="!isSearch")        
+            .main-panel(v-if="!isSearch")        
                 nav
                     div(v-on:click="showTab(0)" :class="{active:tabIndex==0}") 好友
                     div(v-on:click="showTab(1)" :class="{active:tabIndex==1}") 分组
@@ -35,18 +35,18 @@ div.content
                         span(v-if="dealCount") {{dealCount}}    
                 ul.friends(v-if="tabIndex == 0")
                     li(v-for="item in friends" :key="item.id" :class="{online:item.status == 1}" v-on:contextmenu.prevent="menu($event,item)")
-                        div.avatar(v-on:click="profile(item)")
+                        .avatar(v-on:click="profile(item)")
                             img(:src="item.avatar? item.avatar: aPic.src") 
                         p(v-on:click="chatWin(item)") {{item.nick}}
                         span(v-if="item.reads && item.reads > 0") ({{item.reads}})
-                div.groups(v-if="tabIndex == 1")
+                .groups(v-if="tabIndex == 1")
                     i.icon-plus(v-on:click="inputGroup")
                     input(type="text" v-if="inputvisble" maxlength="20" v-on:keyup.enter="appendGroup" v-on:mouseleave="closeInputGroup")
                     ul
                         li(v-for="item in groups" :key="item.id")
-                            div.avatar(v-on:click="groupProfile(item)")
+                            .avatar(v-on:click="groupProfile(item)")
                                 img(:src="item.avatar? item.avatar:gPic.src") 
-                            div.name
+                            .name
                                 p(v-on:click="groupWin(item)") {{item.name}}
                                 span(v-if="item.reads && item.reads > 0") ({{item.reads}})
                             i.icon-minus(v-if="item.create_id == selfInfo.id" v-on:click="deleteGroup(item)")
@@ -60,7 +60,7 @@ div.content
                                 a( v-if="item.group_name" href="javascript:;" v-on:click="msgToGroup(item)") {{item.group_name}}
                                 span(v-else) &nbsp;xxxx
                         p.msg "{{item.apply_message}}"
-                        div.btns
+                        .btns
                             template(v-if="item.status == 0")
                                 a(href="javascript:;" v-if="item.type == 0" v-on:click="accept(item)") 同意
                                 a(href="javascript:;" v-if="item.type == 1" v-on:click="acceptGroup(item)") 同意
@@ -70,7 +70,7 @@ div.content
                             template(v-if="item.status == 2")
                                 span 已拒绝
 
-    div.menu(v-if="menus.visible" :style="{top:menus.top+'px',left:menus.left+'px'}" v-on:mouseleave="closeMenu")
+    .menu(v-if="menus.visible" :style="{top:menus.top+'px',left:menus.left+'px'}" v-on:mouseleave="closeMenu")
         p(v-on:click="profile(menus.info)") 详 情
         p(v-on:click="chatWin(menus.info)") 聊 天
         p(v-on:click="removeFriend(menus.info)") 删 除

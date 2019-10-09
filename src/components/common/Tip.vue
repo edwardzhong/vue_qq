@@ -1,5 +1,5 @@
 <template lang="pug">
-div.tip
+.tip
     div {{name}}
     p {{txt}}
 </template>

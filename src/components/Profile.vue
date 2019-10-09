@@ -1,32 +1,32 @@
 <template lang="pug">
-    div.profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
+    .profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
         v-on:click.stop="$emit('setZ')")
         header(v-drag)
             h2 {{infoType == 0 ? '用户信息':info.nick}}
             div(v-on:click.stop="$emit('close')") ×
-        div.body
-            div.avatar
+        .body
+            .avatar
                 img(:src="info.avatar? info.avatar: aPic.src" ref="img")
                 input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
-            div(class="form form-aligned")
-                div.control-group
+            .form.form-aligned
+                .control-group
                     label 类型
                     p 个人
-                div.control-group
+                .control-group
                     label 号码
                     p {{info.num}}
-                div.control-group
+                .control-group
                     label email
                     p {{info.email}}
-                div.control-group
+                .control-group
                     label 昵称
                     input(type="text" maxlength="20" :value ="info.nick" v-if="infoType == 0" ref="nick")
                     p(v-if="infoType!=0") {{info.nick}}
-                div.control-group
+                .control-group
                     label 个人签名
                     textarea(v-if="infoType == 0" maxlength="50" ref="signature") {{info.signature}}
                     p(v-if="infoType!=0") {{info.signature}}
-                div.control-group(v-if="infoType == 2")
+                .control-group(v-if="infoType == 2")
                     label 验证信息
                     input(type="text" maxlength="20" ref="verify")
             button(class="button" v-if="infoType == 0" v-on:click="save") save

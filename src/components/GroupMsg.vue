@@ -1,23 +1,23 @@
 <template lang="pug">
-div.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
+.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
     v-on:click.stop="$emit('setZ')" )
     header(v-drag)
-        div.avatar(v-on:click.stop="groupProfile(info)")
+        .avatar(v-on:click.stop="groupProfile(info)")
             img(:src="info.avatar? info.avatar: aPic.src") 
         h2 {{info.name}}
-        div.close(v-on:click.stop="$emit('close')") ×
-    div.body
-        div.left
-            div.msgs(ref="body")
+        .close(v-on:click.stop="$emit('close')") ×
+    .body
+        .left
+            .msgs(ref="body")
                 template(v-for="(item,i) in msgs")
                     time {{item.date}}
-                    div.talk(:key="i" v-if="item.id == selfInfo.id" class="right")
+                    .talk(:key="i" v-if="item.id == selfInfo.id" class="right")
                         div
                             p.nick {{item.nick}}
                             p.word(:style="{textAlign:align(item.msg)}") {{item.msg}}
                         span.avatar
                             img(:src="item.avatar? item.avatar: aPic.src")
-                    div.talk(:key="i" v-else)
+                    .talk(:key="i" v-else)
                         span.avatar
                             img(:src="item.avatar? item.avatar: aPic.src")
                         div
@@ -26,12 +26,12 @@ div.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}"
             textarea(v-model="text" maxlength="200")
             footer
                 button(class="button button-primary" v-on:click="send")  send
-        div.info
-            div.notice {{info.desc}}
-            div.users
+        .info
+            .notice {{info.desc}}
+            .users
                 ul
                     li(v-for="(item,i) in info.users" :key="item.id")
-                        div.avatar(v-on:click.stop="profile(item)")
+                        .avatar(v-on:click.stop="profile(item)")
                             img(:src="item.avatar? item.avatar: aPic.src") 
                         p(v-on:click.stop="chatWin(item)") {{item.nick}}
 </template>

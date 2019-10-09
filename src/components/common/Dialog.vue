@@ -1,8 +1,8 @@
 <template lang="pug">
-div.dialog(:class="{active:dialog.show}")
-    div.body
+.dialog(:class="{active:dialog.show}")
+    .body
         p {{dialog.txt}}
-    div.foot
+    .foot
         a(href="javascript:;" v-if="dialog.cancel" v-on:click="close") 取消
         a(href="javascript:;" v-on:click="confirm") 确定
 </template>

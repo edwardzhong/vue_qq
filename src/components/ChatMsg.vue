@@ -1,21 +1,21 @@
 <template lang="pug">
-div.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
+.msg-win(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
     v-on:click.stop="$emit('setZ')" )
     header(v-drag)
-        div.avatar(v-on:click.stop="profile(info)")
+        .avatar(v-on:click.stop="profile(info)")
             img(:src="info.avatar? info.avatar: aPic.src") 
         h2 {{info.nick}}
-        div.close(v-on:click.stop="$emit('close')") ×
-    div.body(ref="body")
+        .close(v-on:click.stop="$emit('close')") ×
+    .body(ref="body")
         template(v-for="(item,i) in msgs")
             time {{item.date}}
-            div.talk(:key="i" v-if="item.self" class="right")
+            .talk(:key="i" v-if="item.self" class="right")
                 div
                     p.nick {{selfInfo.nick}}
                     p.word(:style="{textAlign:align(item.msg)}") {{item.msg}}
                 span.avatar
                     img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src")
-            div.talk(:key="i" v-else)
+            .talk(:key="i" v-else)
                 span.avatar
                     img(:src="info.avatar? info.avatar: aPic.src")
                 div

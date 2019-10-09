@@ -1,5 +1,5 @@
 <template lang="pug">
-div.sign-wrap
+.sign-wrap
     router-view
 </template>
 

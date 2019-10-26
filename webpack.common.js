@@ -8,7 +8,7 @@ module.exports = {
     entry: './src/main.js',
     output: {
         path: resolve(__dirname, 'dist'),
-        // publicPath: '/public/',//虚拟目录
+        publicPath: '/',
         filename: '[name]-[hash].js'//输出文件添加hash
     },
     optimization: { // 代替commonchunk, 代码分割

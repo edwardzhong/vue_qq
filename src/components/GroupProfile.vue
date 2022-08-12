@@ -25,7 +25,7 @@
                     textarea(v-if="infoType == 0" maxlength="50" ref="desc") {{info.desc}}
                     p(v-if="infoType!=0") {{info.desc}}
                 .control-group(v-if="infoType == 2")
-                    label 验证信息
+                    label cannot be empty
                     input(type="text" maxlength="20" ref="verify")
             button(class="button" v-if="infoType == 0" v-on:click="save(info)") save
             button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 申请加入

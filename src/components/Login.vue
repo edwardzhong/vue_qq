@@ -29,10 +29,12 @@ export default {
                 this.$store.commit('showDialog',{txt:'email不能为空'})
                 return;
             }
+            /*
             if (!/^[\w\d]+@[\d\d]+\.com$/.test(this.email)) {
                 this.$store.commit('showDialog',{txt:'email格式不正确'})
                 return;
             }
+            */
             if (!this.password) {
                 this.$store.commit('showDialog',{txt:'密码不能为空'})
                 return;

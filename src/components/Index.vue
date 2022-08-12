@@ -29,9 +29,9 @@
                             p(v-on:click="groupWin(item)") {{item.name}}
             .main-panel(v-if="!isSearch")        
                 nav
-                    div(v-on:click="showTab(0)" :class="{active:tabIndex==0}") 好友
-                    div(v-on:click="showTab(1)" :class="{active:tabIndex==1}") 分组
-                    div(v-on:click="showTab(2)" :class="{active:tabIndex==2}") 消息
+                    div(v-on:click="showTab(0)" :class="{active:tabIndex==0}") Friend
+                    div(v-on:click="showTab(1)" :class="{active:tabIndex==1}") Group
+                    div(v-on:click="showTab(2)" :class="{active:tabIndex==2}") Info
                         span(v-if="dealCount") {{dealCount}}    
                 ul.friends(v-if="tabIndex == 0")
                     li(v-for="item in friends" :key="item.id" :class="{online:item.status == 1}" v-on:contextmenu.prevent="menu($event,item)")

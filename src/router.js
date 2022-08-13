@@ -1,11 +1,8 @@
-import Vue from 'vue'
-import Router from 'vue-router'
 import Index from './components/Index.vue'
 import Sign from './components/Sign.vue'
 import Login from "./components/Login.vue";
 import Register from "./components/Register.vue";
-
-Vue.use(Router)
+import { createRouter, createWebHistory } from 'vue-router';
 
 //路由
 const routes = [{
@@ -29,9 +26,13 @@ const routes = [{
         },
         { path: '*', redirect: 'log' }
     ]
-}, { path: '*', redirect: '/' }]
+}]
 
-export default new Router({
-    mode: "history",
-    routes
-})
+const router = createRouter({
+    history: createWebHistory(),
+    linkExactActiveClass: "font-bold text-blue-500 hover:text-white",
+    routes,
+});
+
+
+export default router;

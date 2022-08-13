@@ -1,12 +1,14 @@
-import Vue from 'vue'
+import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
 import '../public/base.min.css'
 import '../public/fontello.css'
 
-Vue.config.productionTip = false
-Vue.directive('drag', {
+const app = createApp(App)
+
+app.config.productionTip = false
+app.directive('drag', {
 	bind: function (el) {
 		el.onmousedown = (e) => {
 			//算出鼠标相对元素的位置
@@ -29,8 +31,7 @@ Vue.directive('drag', {
 		};
 	}
 });
-new Vue({
-	router,
-	store,
-	render: h => h(App),
-}).$mount('#app')
+
+app.use(router)
+app.use(store)
+app.mount('#app')

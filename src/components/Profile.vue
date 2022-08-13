@@ -1,36 +1,36 @@
 <template lang="pug">
-    .profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
-        v-on:click.stop="$emit('setZ')")
-        header(v-drag)
-            h2 {{infoType == 0 ? '用户信息':info.nick}}
-            div(v-on:click.stop="$emit('close')") ×
-        .body
-            .avatar
-                img(:src="info.avatar? info.avatar: aPic.src" ref="img")
-                input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
-            .form.form-aligned
-                .control-group
-                    label 类型
-                    p 个人
-                .control-group
-                    label 号码
-                    p {{info.num}}
-                .control-group
-                    label email
-                    p {{info.email}}
-                .control-group
-                    label 昵称
-                    input(type="text" maxlength="20" :value ="info.nick" v-if="infoType == 0" ref="nick")
-                    p(v-if="infoType!=0") {{info.nick}}
-                .control-group
-                    label 个人签名
-                    textarea(v-if="infoType == 0" maxlength="50" ref="signature") {{info.signature}}
-                    p(v-if="infoType!=0") {{info.signature}}
-                .control-group(v-if="infoType == 2")
-                    label cannot be empty
-                    input(type="text" maxlength="20" ref="verify")
-            button(class="button" v-if="infoType == 0" v-on:click="save") save
-            button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 加为好友
+.profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
+    v-on:click.stop="$emit('setZ')")
+    header(v-drag)
+        h2 {{infoType == 0 ? '用户信息':info.nick}}
+        div(v-on:click.stop="$emit('close')") ×
+    .body
+        .avatar
+            img(:src="info.avatar? info.avatar: aPic.src" ref="img")
+            input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
+        .form.form-aligned
+            .control-group
+                label 类型
+                p 个人
+            .control-group
+                label 号码
+                p {{info.num}}
+            .control-group
+                label email
+                p {{info.email}}
+            .control-group
+                label 昵称
+                input(type="text" maxlength="20" :value ="info.nick" v-if="infoType == 0" ref="nick")
+                p(v-if="infoType!=0") {{info.nick}}
+            .control-group
+                label 个人签名
+                textarea(v-if="infoType == 0" maxlength="50" ref="signature") {{info.signature}}
+                p(v-if="infoType!=0") {{info.signature}}
+            .control-group(v-if="infoType == 2")
+                label cannot be empty
+                input(type="text" maxlength="20" ref="verify")
+        button(class="button" v-if="infoType == 0" v-on:click="save") save
+        button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 加为好友
 </template>
 <script>
 import { mapState, mapGetters } from "vuex";
@@ -54,7 +54,7 @@ export default {
     data() {
         return {
             aPic: {
-                src: require("../assets/avatar.jpg")
+                src: "../assets/avatar.jpg"
             },
             infoType: 2, //0 自己 1 好友 2 陌生人
             showDailog: false

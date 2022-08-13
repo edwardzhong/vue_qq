@@ -3,7 +3,7 @@
     .bar
         header(v-drag)
             .avatar(v-on:click="profile(selfInfo)")
-                img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src") 
+                img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src")
             .name {{ selfInfo.nick }}
                 p {{ selfInfo.signature}}
             i.icon-logout(v-on:click="logout")
@@ -20,12 +20,12 @@
                     ul
                         li(v-for="item in searchs.users" :key="item.id")
                             .avatar(v-on:click="profile(item)")
-                                img(:src="item.avatar? item.avatar: aPic.src") 
+                                img(:src="item.avatar? item.avatar: aPic.src")
                             p(v-on:click="userTo(item)") {{item.name}}
                     ul
                         li(v-for="item in searchs.groups" :key="item.id")
                             .avatar(v-on:click="groupProfile(item)")
-                                img(:src="item.avatar? item.avatar: aPic.src") 
+                                img(:src="item.avatar? item.avatar: aPic.src")
                             p(v-on:click="groupWin(item)") {{item.name}}
             .main-panel(v-if="!isSearch")        
                 nav
@@ -36,7 +36,7 @@
                 ul.friends(v-if="tabIndex == 0")
                     li(v-for="item in friends" :key="item.id" :class="{online:item.status == 1}" v-on:contextmenu.prevent="menu($event,item)")
                         .avatar(v-on:click="profile(item)")
-                            img(:src="item.avatar? item.avatar: aPic.src") 
+                            img(:src="item.avatar? item.avatar: aPic.src")
                         p(v-on:click="chatWin(item)") {{item.nick}}
                         span(v-if="item.reads && item.reads > 0") ({{item.reads}})
                 .groups(v-if="tabIndex == 1")
@@ -45,7 +45,7 @@
                     ul
                         li(v-for="item in groups" :key="item.id")
                             .avatar(v-on:click="groupProfile(item)")
-                                img(:src="item.avatar? item.avatar:gPic.src") 
+                                img(:src="item.avatar? item.avatar:gPic.src")
                             .name
                                 p(v-on:click="groupWin(item)") {{item.name}}
                                 span(v-if="item.reads && item.reads > 0") ({{item.reads}})
@@ -89,7 +89,7 @@
 
 <script>
 import { mapState, mapGetters } from "vuex";
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 import ChatMsg from "./ChatMsg.vue";
 import Profile from "./Profile.vue";
 import GroupProfile from "./GroupProfile.vue";
@@ -111,10 +111,10 @@ export default {
             },
             wins: [],
             aPic: {
-                src: require("../assets/avatar.jpg")
+                src: "../assets/avatar.jpg"
             },
             gPic: {
-                src: require("../assets/group.jpg")
+                src: "../assets/group.jpg"
             },
             socket: { close: () => {} }
         };

@@ -1,34 +1,34 @@
 <template lang="pug">
-    .profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
-        v-on:click.stop="$emit('setZ')")
-        header(v-drag)
-            h2 {{info.name}}
-            div(v-on:click.stop="$emit('close')") ×
-        .body
-            .avatar
-                img(:src="info.avatar? info.avatar: gPic.src" ref="img")
-                input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
-            .form.form-aligned
-                .control-group
-                    label 类型
-                    p 群组
-                .control-group
-                    label 群主
-                    p
-                        a(href="javascript:;") {{info.create_name}}
-                .control-group
-                    label 名称
-                    input(type="text" :value ="info.name" maxlength="20" v-if="infoType == 0" ref="name")
-                    p(v-if="infoType!=0") {{info.name}}
-                .control-group
-                    label 介绍
-                    textarea(v-if="infoType == 0" maxlength="50" ref="desc") {{info.desc}}
-                    p(v-if="infoType!=0") {{info.desc}}
-                .control-group(v-if="infoType == 2")
-                    label 验证信息
-                    input(type="text" maxlength="20" ref="verify")
-            button(class="button" v-if="infoType == 0" v-on:click="save(info)") save
-            button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 申请加入
+.profile(:style="{left:sty.left+'px',top:sty.top+'px',zIndex:sty.z}" 
+    v-on:click.stop="$emit('setZ')")
+    header(v-drag)
+        h2 {{info.name}}
+        div(v-on:click.stop="$emit('close')") ×
+    .body
+        .avatar
+            img(:src="info.avatar? info.avatar: gPic.src" ref="img")
+            input(type="file" v-on:change="uploadFile($event)" v-if="infoType == 0")
+        .form.form-aligned
+            .control-group
+                label 类型
+                p 群组
+            .control-group
+                label 群主
+                p
+                    a(href="javascript:;") {{info.create_name}}
+            .control-group
+                label 名称
+                input(type="text" :value ="info.name" maxlength="20" v-if="infoType == 0" ref="name")
+                p(v-if="infoType!=0") {{info.name}}
+            .control-group
+                label 介绍
+                textarea(v-if="infoType == 0" maxlength="50" ref="desc") {{info.desc}}
+                p(v-if="infoType!=0") {{info.desc}}
+            .control-group(v-if="infoType == 2")
+                label cannot be empty
+                input(type="text" maxlength="20" ref="verify")
+        button(class="button" v-if="infoType == 0" v-on:click="save(info)") save
+        button(class="button" v-if="infoType == 2" v-on:click="apply(info)") 申请加入
 </template>
 <script>
 import { mapState, mapGetters } from "vuex";
@@ -52,7 +52,7 @@ export default {
     data() {
         return {
             gPic: {
-                src: require("../assets/group.jpg")
+                src: "../assets/group.jpg"
             },
             infoType: 2, //0 自己 1 已经加入 2 未加入
             showDailog: false

@@ -15,7 +15,9 @@ const errorHandler = require("./middleware/error");
 const addRouters = require("./router");
 const config = require("./config/app");
 const server = require("http").createServer(app.callback());
-const io = require("socket.io")(server);
+const io = require("socket.io")(server, {
+  cors: config.cors
+});
 const addSocket = require("./socket");
 const path = require("path");
 const baseDir = path.normalize(__dirname + "/..");
@@ -53,13 +55,7 @@ app.use(favicon(path.join(baseDir, "public/favicon.ico")));
 
 //cors
 app.use(
-  cors({
-    origin: "http://localhost:" + config.clientPort, // * 仍然不能访问header,要写明具体域名才行
-    credentials: true, //将凭证暴露出来, 前端才能获取cookie
-    allowMethods: ["GET", "POST", "DELETE"],
-    exposeHeaders: ["Authorization"], // 将header字段expose出去，前端才能获取该header字段
-    allowHeaders: ["Content-Type", "Authorization", "Accept"] // 允许添加到header的字段
-  })
+  cors(config.cors)
 );
 
 //json-web-token
@@ -109,7 +105,7 @@ app.on("error", (err, ctx) => {
 });
 
 if (!module.parent) {
-  const { port, socketPort } = config;
+  const { port, socketPort, clientPort } = config;
   /**
    * koa app
    */
@@ -125,4 +121,9 @@ if (!module.parent) {
   server.listen(socketPort);
   log.info(`=== socket listening on port ${socketPort} ===`);
   console.log("socket server running at: http://localhost:%d", socketPort);
+
+  /**
+   * client
+   */
+  console.log("allowed client at: http://localhost:%d", clientPort);
 }

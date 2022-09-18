@@ -3,7 +3,7 @@
     v-on:click.stop="$emit('setZ')" )
     header(v-drag)
         .avatar(v-on:click.stop="groupProfile(info)")
-            img(:src="info.avatar? info.avatar: aPic.src") 
+            img(:src="info.avatar? info.avatar: aPic.src")
         h2 {{info.name}}
         .close(v-on:click.stop="$emit('close')") ×
     .body
@@ -17,7 +17,7 @@
                             p.word(:style="{textAlign:align(item.msg)}") {{item.msg}}
                         span.avatar
                             img(:src="item.avatar? item.avatar: aPic.src")
-                    .talk(:key="i" v-else)
+                    .talk(:key="i + 1" v-else)
                         span.avatar
                             img(:src="item.avatar? item.avatar: aPic.src")
                         div
@@ -32,7 +32,7 @@
                 ul
                     li(v-for="(item,i) in info.users" :key="item.id")
                         .avatar(v-on:click.stop="profile(item)")
-                            img(:src="item.avatar? item.avatar: aPic.src") 
+                            img(:src="item.avatar? item.avatar: aPic.src")
                         p(v-on:click.stop="chatWin(item)") {{item.nick}}
 </template>
 <script>
@@ -50,10 +50,10 @@ export default {
         return {
             text: "",
             aPic: {
-                src: require("../assets/avatar.jpg")
+                src: "../assets/avatar.jpg"
             },
             gPic: {
-                src: require("../assets/group.jpg")
+                src: "../assets/group.jpg"
             }
         };
     },

@@ -11,7 +11,7 @@ module.exports = () => {
             log.error(err);
             let obj = {
                 code: -1,
-                message: '服务器错误'
+                message: 'Internal Server Error'
             };
             if (ctx.app.env === 'development') {
                 obj.err = err;

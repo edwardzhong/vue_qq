@@ -1,5 +1,4 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import { createStore } from 'vuex'
 import { state, mutations } from './mutations'
 import * as getters from './getters'
 import * as actions from './actions'
@@ -8,9 +7,7 @@ import search from './modules/search'
 import msg from './modules/msg'
 import group from './modules/group'
 
-Vue.use(Vuex)
-
-export default new Vuex.Store({
+export default createStore({
 	actions,
 	getters,
 	state,

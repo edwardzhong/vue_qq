@@ -1,9 +1,9 @@
 <template lang="pug">
-	div#app
-		Modal
-		Tip(:class="{ active:tip.show}" :name="tip.name" :txt="tip.txt")
-		Dialog
-		router-view
+div#app
+	Modal
+	Tip(:class="{ active:tip.show}" :name="tip.name" :txt="tip.txt")
+	Dialog
+	router-view
 </template>
 <script>
 import { mapState, mapGetters } from "vuex"

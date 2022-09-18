@@ -3,7 +3,7 @@
     v-on:click.stop="$emit('setZ')" )
     header(v-drag)
         .avatar(v-on:click.stop="profile(info)")
-            img(:src="info.avatar? info.avatar: aPic.src") 
+            img(:src="info.avatar? info.avatar: aPic.src")
         h2 {{info.nick}}
         .close(v-on:click.stop="$emit('close')") ×
     .body(ref="body")
@@ -15,7 +15,7 @@
                     p.word(:style="{textAlign:align(item.msg)}") {{item.msg}}
                 span.avatar
                     img(:src="selfInfo.avatar? selfInfo.avatar: aPic.src")
-            .talk(:key="i" v-else)
+            .talk(:key="i + 1" v-else)
                 span.avatar
                     img(:src="info.avatar? info.avatar: aPic.src")
                 div
@@ -40,7 +40,7 @@ export default {
         return {
             text: "",
             aPic: {
-                src: require("../assets/avatar.jpg")
+                src: "../assets/avatar.jpg"
             }
         };
     },

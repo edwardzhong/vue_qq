@@ -1,5 +1,5 @@
 <template lang="pug">
-  .modal(v-if="visible")
+.modal(v-if="visible")
 </template>
 <script>
 export default {
